@@ -3,7 +3,7 @@ project(part1)
 
 #need to include FindOPENCL.cmake to
 SET( CMAKE_MODULE_PATH
-     ${enjacl_SOURCE_DIR}/../cmake
+     ${part1_SOURCE_DIR}/../cmake
      $ENV{CMAKE_MODULES})
 
 message("CMake module path: ${CMAKE_MODULE_PATH}\n")
@@ -24,17 +24,17 @@ ADD_DEFINITIONS(-DCL_SOURCE_DIR="${part1_SOURCE_DIR}")
 ADD_DEFINITIONS(-g )
 
 #the source files we want to compile into the library
-set (LIBCXXFILES  cll.cpp)
+set (LIBCXXFILES cll.cpp part1.cpp util.cpp)
 #set a CMake variable to name the library
-SET(lib part1)
-ADD_LIBRARY(${lib} ${LIBCXXFILES})
+SET(cllib part1)
+ADD_LIBRARY(${cllib} ${LIBCXXFILES})
 
 
 #create the executable
 SET(EXEC part1.x)
 ADD_EXECUTABLE(${EXEC} main.cpp)
 
-TARGET_LINK_LIBRARIES (${EXEC_CL}
-   ${lib}
+TARGET_LINK_LIBRARIES (${EXEC}
+   ${cllib}
    ${OPENCL_LIBRARIES}
 )

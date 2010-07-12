@@ -1,2 +1,0 @@
-/panfs/panasas1/users/idj03/research/cl/advcl/part1/build/CMakeFiles/part1.dir
-/panfs/panasas1/users/idj03/research/cl/advcl/part1/build/CMakeFiles/part1.x.dir
