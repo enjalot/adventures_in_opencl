@@ -1,0 +1,2 @@
+/usr/bin/ar cr libpart1.a  CMakeFiles/part1.dir/opencl.cpp.o
+/usr/bin/ranlib libpart1.a

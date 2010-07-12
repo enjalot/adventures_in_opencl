@@ -1,0 +1,32 @@
+#IncludeRegexLine: ^[ 	]*#[ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/panfs/panasas1/users/idj03/research/cl/advcl/part1/opencl.cpp
+string.h
+-
+string
+-
+GL/glew.h
+-
+OpenGL/gl.h
+-
+OpenGL/glext.h
+-
+GLUT/glut.h
+-
+OpenGL/CGLCurrent.h
+-
+GL/glx.h
+-
+enja.h
+/panfs/panasas1/users/idj03/research/cl/advcl/part1/enja.h
+util.h
+/panfs/panasas1/users/idj03/research/cl/advcl/part1/util.h
+timege.h
+/panfs/panasas1/users/idj03/research/cl/advcl/part1/timege.h
+

@@ -1,0 +1,32 @@
+
+
+###############################################
+#       APPLE OSX 10.6
+###############################################
+IF(APPLE)
+	message("apple")
+    INCLUDE (OSX_CONFIG)
+
+ELSEIF($ENV{HOSTNAME} MATCHES "mark2")
+	message("mark2")
+	INCLUDE(MARK2_CONFIG)
+
+###############################################
+#       UBUNTU LINUX 9.10
+#       FSU Vislab
+###############################################
+ELSEIF (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+	message("ubuntu")
+    INCLUDE (UBUNTU_CONFIG)
+
+ELSE(APPLE)
+	message("Not implemented")
+
+ENDIF(APPLE)
+
+################# END OS DEPENDENT CONFIGS ####################
+
+
+# Get common build instructions used by all operating systems
+INCLUDE (COMMON_CONFIG)
+

@@ -1,0 +1,11 @@
+
+export BASE_DIR=${HOME}/code
+#this should be updated to where you have this code
+export ENJA_DIR=${HOME}/code/EnjaParticles/enjacl
+
+#export CUDA_HOME=/usr/local/cuda
+export GPU_SDK=/Developer/GPU\ Computing
+export OPENCL_HOME=${GPU_SDK}/OpenCL
+
+export CMAKE_MODULES=/opt/local/share/cmake-2.8/Modules/
+

@@ -1,0 +1,8 @@
+# setup environment variables for vizlab machines
+export BASE_DIR=/panfs/panasas1/research/erlebach
+
+export GPU_SDK=${BASE_DIR}/NVIDIA_GPU_Computing_SDK
+export OPENCL_HOME=${GPU_SDK}/OpenCL
+
+export CMAKE_MODULES=/usr/share/cmake-2.8/Modules/
+
