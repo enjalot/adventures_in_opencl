@@ -1,0 +1,13 @@
+Adventures in OpenCL tutorial series
+by Ian Johnson - http://enja.org
+advisor: Gordon Erlebacher
+Florida State University Department of Scientific Computing
+http://sc.fsu.edu
+
+Tutorials
+part1 - getting started: making and running a minimal opencl kernel
+
+Supporting directories
+environment - scripts for setting necessary environment variables
+cmake - cmake modules for finding necessary libraries
+

@@ -54,15 +54,17 @@ void CL::popCorn()
 void CL::runKernel()
 {
     printf("in runKernel\n");
+    //execute the kernel
     err = clEnqueueNDRangeKernel(command_queue, kernel, 1, NULL, workGroupSize, NULL, 0, NULL, &event);
     clReleaseEvent(event);
     printf("clEnqueueNDRangeKernel: %s\n", oclErrorString(err));
     clFinish(command_queue);
 
-    //lets check our calculations
+    //lets check our calculations by reading from the device memory and printing out the results
     float *c_done;
     err = clEnqueueReadBuffer(command_queue, cl_c, CL_TRUE, 0, sizeof(float) * num, c_done, 0, NULL, &event);
     printf("clEnqueueReadBuffer: %s\n", oclErrorString(err));
+    clReleaseEvent(event);
 
     for(int i=0; i < num; i++)
     {

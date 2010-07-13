@@ -78,13 +78,16 @@ cl_int oclGetPlatformID(cl_platform_id* clSelectedPlatformID)
 
             // get platform info for each platform and trap the NVIDIA platform if found
             ciErrNum = clGetPlatformIDs (num_platforms, clPlatformIDs, NULL);
+            printf("Available platforms:\n");
             for(i = 0; i < num_platforms; ++i)
             {
                 ciErrNum = clGetPlatformInfo (clPlatformIDs[i], CL_PLATFORM_NAME, 1024, &chBuffer, NULL);
                 if(ciErrNum == CL_SUCCESS)
                 {
+                    printf("platform %d: %s\n", i, chBuffer);
                     if(strstr(chBuffer, "NVIDIA") != NULL)
                     {
+                        printf("selected platform %d\n", i);
                         *clSelectedPlatformID = clPlatformIDs[i];
                         break;
                     }
@@ -95,7 +98,8 @@ cl_int oclGetPlatformID(cl_platform_id* clSelectedPlatformID)
             if(*clSelectedPlatformID == NULL)
             {
                 //shrLog("WARNING: NVIDIA OpenCL platform not found - defaulting to first platform!\n\n");
-                printf("WARNING: NVIDIA OpenCL platform not found - defaulting to first platform!\n\n");
+                //printf("WARNING: NVIDIA OpenCL platform not found - defaulting to first platform!\n\n");
+                printf("selected platform: %d\n", 0);
                 *clSelectedPlatformID = clPlatformIDs[0];
             }
 

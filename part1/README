@@ -1,0 +1,20 @@
+Adventures in OpenCL: Part 1
+http://enja.org
+
+Getting Started: building and running a minimalist kernel
+
+Build:
+you should first copy and edit the appropriate environment script for your system
+../environment/setupenv_linux or ../environment/setupenv_mac
+then source it:
+source ../environment/setupenv_yourscript
+
+next make a build directory and build the tutorial
+mkdir build
+cd build
+cmake ..
+make
+
+execute the example program
+./part1.x
+

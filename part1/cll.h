@@ -17,6 +17,25 @@ class CL {
         int num;    //the size of our arrays
 
 
+        size_t workGroupSize[1]; //N dimensional array of workgroup size we must pass to the kernel
+
+        //default constructor initializes OpenCL context and automatically chooses platform and device
+        CL();
+        //default constructor releases OpenCL objects and frees device memory
+        ~CL();
+
+        //load an OpenCL program from a file
+        //the path is relative to the CL_SOURCE_DIR set in CMakeLists.txt
+        void loadProgram(const char* relative_path);
+
+        //setup the data for the kernel 
+        //these are implemented in part1.cpp (in the future we will make these more general)
+        void popCorn();
+        //execute the kernel
+        void runKernel();
+
+    private:
+
         //handles for creating an opencl context 
         cl_platform_id platform;
         
@@ -31,27 +50,12 @@ class CL {
         cl_program program;
         cl_kernel kernel;
         
-        size_t workGroupSize[1]; //N dimensional array of workgroup size we must pass to the kernel
 
-        CL();
-        ~CL();
-
-        //load an OpenCL program from a file
-        //the path is relative to the CL_SOURCE_DIR set in CMakeLists.txt
-        void loadProgram(const char* relative_path);
-
-        //setup the data for the kernel 
-        //these are implemented in part1.cpp (in the future we will make these more general)
-        void popCorn();
-        //execute the kernel
-        void runKernel();
-
-    private:
         //debugging variables
         cl_int err;
         cl_event event;
         
-        //builExecutable is called by loadProgram
+        //buildExecutable is called by loadProgram
         //build runtime executable from a program
         void buildExecutable();
 };
