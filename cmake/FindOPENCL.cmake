@@ -22,10 +22,10 @@ ELSE (WIN32)
 
     # Unix style platforms
     # We also search for OpenCL in the NVIDIA GPU SDK default location
-	SET(OPENCL_INCLUDE_DIR  "$ENV{OPENCL_HOME}/common/inc"
-	   CACHE PATH "path to Opencl Include files")
+    #SET(OPENCL_INCLUDE_DIR  "$ENV{OPENCL_HOME}/common/inc"
+    #   CACHE PATH "path to Opencl Include files")
 
-	message(***** OPENCL_INCLUDE_DIR: "${OPENCL_INCLUDE_DIR}" ********)
+    #message(***** OPENCL_INCLUDE_DIR: "${OPENCL_INCLUDE_DIR}" ********)
 
 	# does not work. WHY? 
     #SET(inc  $ENV{CUDA_LOCAL}/../OpenCL/common/inc /usr/include)
@@ -33,7 +33,7 @@ ELSE (WIN32)
 
     FIND_LIBRARY(OPENCL_LIBRARIES OpenCL ENV LD_LIBRARY_PATH)
 
-	message(***** OPENCL ENV: "$ENV{GPU_SDK}" ********)
+    #message(***** OPENCL ENV: "$ENV{GPU_SDK}" ********)
 
 #~/NVIDIA_GPU_Computing_SDK/OpenCL/common/inc/ 
 
@@ -45,6 +45,6 @@ IF(OPENCL_LIBRARIES )
     SET( OPENCL_FOUND "YES" )
 ENDIF(OPENCL_LIBRARIES)
 
-MARK_AS_ADVANCED(
-  OPENCL_INCLUDE_DIR
-)
+#MARK_AS_ADVANCED(
+#  OPENCL_INCLUDE_DIR
+#)
