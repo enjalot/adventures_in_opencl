@@ -6,8 +6,15 @@ http://sc.fsu.edu
 
 Tutorials
 part1 - getting started: making and running a minimal opencl kernel
+part1.5 - getting started with C++ bindings: making and running a minimal opencl kernel
 
 Supporting directories
-environment - scripts for setting necessary environment variables
 cmake - cmake modules for finding necessary libraries
+opencl10 - OpenCL 1.0 header files
+opencl11 - OpenCL 1.1 header files
 
+
+Thanks:
+Gordon Erlebacher
+Evan Bollig
+Doug Jacobsen
