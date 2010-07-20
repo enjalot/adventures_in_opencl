@@ -19,7 +19,8 @@ int main(int argc, char** argv)
     CL example;
     
     //load and build our CL program from the file
-    example.loadProgram("part1.cl");
+    #include "part1.cl" //const char* kernel_source is defined in here
+    example.loadProgram(kernel_source);
 
     //initialize the kernel and send data from the CPU to the GPU
     example.popCorn();

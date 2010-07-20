@@ -81,7 +81,7 @@ CL::~CL()
 }
 
 
-void CL::loadProgram(const char* relative_path)
+void CL::loadProgram(const char* kernel_source)
 {
  // Program Setup
     int pl;
@@ -97,7 +97,7 @@ void CL::loadProgram(const char* relative_path)
     //file_contents is defined in util.cpp
     //it loads the contents of the file at the given path
     //char* cSourceCL = file_contents(path.c_str(), &pl);
-    #include "part1.cl"
+    //#include "part1.cl"
     cl::Program::Sources source(1,
         std::make_pair(kernel_source,pl));
     
