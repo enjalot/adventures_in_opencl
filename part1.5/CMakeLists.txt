@@ -17,7 +17,7 @@ get_directory_property(includes INCLUDE_DIRECTORIES)
 message("${includes}\n")
 
 #provide the source path so we can open our .cl file at runtime
-ADD_DEFINITIONS(-DCL_SOURCE_DIR="${part1_SOURCE_DIR}")
+#ADD_DEFINITIONS(-DCL_SOURCE_DIR="${part1_SOURCE_DIR}")
 #build in debug mode
 ADD_DEFINITIONS(-g )
 

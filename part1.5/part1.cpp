@@ -40,7 +40,7 @@ void CL::popCorn()
     cl_b = cl::Buffer(context, CL_MEM_READ_ONLY, array_size, NULL, &err);
     //our output array
     ///cl_c = clCreateBuffer(context, CL_MEM_WRITE_ONLY, sizeof(float) * num, NULL, &err);
-    cl_c = cl::Buffer(context, CL_MEM_READ_ONLY, array_size, NULL, &err);
+    cl_c = cl::Buffer(context, CL_MEM_WRITE_ONLY, array_size, NULL, &err);
 
     printf("Pushing data to the GPU\n");
     //push our CPU arrays to the GPU

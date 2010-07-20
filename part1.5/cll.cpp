@@ -16,7 +16,8 @@ CL::CL()
     //oclErrorString is also defined in util.cpp and comes from the NVIDIA SDK
     ///printf("oclGetPlatformID: %s\n", oclErrorString(err));
     std::vector<cl::Platform> platforms;
-    cl::Platform::get(&platforms);
+    err = cl::Platform::get(&platforms);
+    printf("cl::Platform::get(): %s\n", oclErrorString(err));
     if (platforms.size() == 0) {
         printf("Platform size 0\n");
     }
@@ -84,19 +85,21 @@ void CL::loadProgram(const char* relative_path)
 {
  // Program Setup
     int pl;
-    size_t program_length;
+    //size_t program_length;
     printf("load the program\n");
     
     //CL_SOURCE_DIR is set in the CMakeLists.txt
+    /*
     std::string path(CL_SOURCE_DIR);
     path += "/" + std::string(relative_path);
     printf("path: %s\n", path.c_str());
-
+    */
     //file_contents is defined in util.cpp
     //it loads the contents of the file at the given path
-    char* cSourceCL = file_contents(path.c_str(), &pl);
+    //char* cSourceCL = file_contents(path.c_str(), &pl);
+    #include "part1.cl"
     cl::Program::Sources source(1,
-        std::make_pair(cSourceCL,pl));
+        std::make_pair(kernel_source,pl));
     
     program = cl::Program(context, source);
 
