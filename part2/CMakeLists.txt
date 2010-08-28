@@ -26,11 +26,6 @@ message("${includes}\n")
 #build in debug mode
 ADD_DEFINITIONS(-g)
 
-#we want OpenCL to share context with OpenGL
-#this isn't available on all cards so we should provide
-#alternative option in the code
-ADD_DEFINITIONS(-DGL_INTEROP)
-
 #the source files we want to compile into the library
 set (LIBCXXFILES cll.cpp part2.cpp util.cpp)
 #set a CMake variable to name the library

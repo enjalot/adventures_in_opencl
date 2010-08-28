@@ -26,7 +26,7 @@
 //Our OpenCL Particle Systemclass
 #include "cll.h"
 
-#define NUM_PARTICLES 1000
+#define NUM_PARTICLES 10000
 CL* example;
 
 //GL related variables

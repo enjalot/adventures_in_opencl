@@ -16,16 +16,13 @@ void CL::loadData(std::vector<Vec4> pos, std::vector<Vec4> vel, std::vector<Vec4
 
     //make sure OpenGL is finished before we proceed
     glFinish();
-#ifdef GL_INTEROP
     printf("gl interop!\n");
     // create OpenCL buffer from GL VBO
     cl_vbos.push_back(cl::BufferGL(context, CL_MEM_READ_WRITE, p_vbo, &err));
     //printf("v_vbo: %s\n", oclErrorString(err));
     cl_vbos.push_back(cl::BufferGL(context, CL_MEM_READ_WRITE, c_vbo, &err));
     //we don't need to push any data here because it's already in the VBO
-#else
 
-#endif
 
     //create the OpenCL only arrays
     cl_velocities = cl::Buffer(context, CL_MEM_WRITE_ONLY, array_size, NULL, &err);
@@ -75,7 +72,6 @@ void CL::popCorn()
 void CL::runKernel()
 {
     //this will update our system by calculating new velocity and updating the positions of our particles
-#ifdef GL_INTEROP   
     //Make sure OpenGL is done using our VBOs
     glFinish();
     // map OpenGL buffer object for writing from OpenCL
@@ -83,7 +79,6 @@ void CL::runKernel()
     err = queue.enqueueAcquireGLObjects(&cl_vbos, NULL, &event);
     //printf("acquire: %s\n", oclErrorString(err));
     queue.finish();
-#endif
 
     float dt = .01f;
     kernel.setArg(5, dt); //pass in the timestep
@@ -92,16 +87,10 @@ void CL::runKernel()
     //printf("clEnqueueNDRangeKernel: %s\n", oclErrorString(err));
     queue.finish();
 
-
-
-#ifdef GL_INTEROP
     //Release the VBOs so OpenGL can play with them
     err = queue.enqueueReleaseGLObjects(&cl_vbos, NULL, &event);
     //printf("release gl: %s\n", oclErrorString(err));
     queue.finish();
-#else
-
-#endif
 
 }
 
