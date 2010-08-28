@@ -4,6 +4,12 @@
 #include <string>
 #include <string.h>
 
+//OpenGL stuff
+#if defined __APPLE__ || defined(MACOSX)
+#else
+    #include <GL/glx.h>
+#endif
+
 
 #include "cll.h"
 #include "util.h"
