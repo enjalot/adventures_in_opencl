@@ -1,0 +1,20 @@
+Adventures in OpenCL: Part 1.5
+http://enja.org
+
+Getting Started: building and running a minimalist kernel (with C++ headers)
+This is the same code as part1, just converted to use OpenCL C++ Bindings.
+
+Build:
+make a build directory and build the tutorial
+mkdir build
+cd build
+cmake ..
+make
+
+execute the example program
+./part1.x
+
+
+NOTES:
+Followed this tutorial to convert from C headers to C++
+http://developer.amd.com/gpu/ATIStreamSDK/ImageConvolutionOpenCL/Pages/ImageConvolutionUsingOpenCL_3.aspx

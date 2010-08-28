@@ -1,2 +1,6 @@
 OpenCL 1.0 Header files downloaded from
 http://www.khronos.org/registry/cl/
+
+
+Minor modification made to cl.hpp
+Added an extra constructor for Context that allows OpenGL sharing on Mac OS X

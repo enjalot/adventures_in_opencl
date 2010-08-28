@@ -68,6 +68,9 @@ void CL::popCorn()
  
     //for now we make the workgroup size the same as the number of elements in our arrays
     //workGroupSize[0] = num;
+    delete a;
+    delete b;
+    delete c;
 }
 
 
@@ -94,6 +97,8 @@ void CL::runKernel()
     {
         printf("c_done[%d] = %g\n", i, c_done[i]);
     }
+
+    delete c_done;
 
 }
 
