@@ -2,21 +2,8 @@
 #include <string>
 #include <iostream>
 
-//OpenGL stuff
-#include <GL/glew.h>
-#if defined __APPLE__ || defined(MACOSX)
-    #include <OpenGL/gl.h>
-    #include <OpenGL/glext.h>
-    #include <GLUT/glut.h>
-    #include <OpenGL/CGLCurrent.h> 
-#else
-    #include <GL/glx.h>
-#endif
-
 #include "cll.h"
 #include "util.h"
-
-
 
 CL::CL()
 {
