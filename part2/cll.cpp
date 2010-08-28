@@ -5,6 +5,13 @@
 #include "cll.h"
 #include "util.h"
 
+#if defined __APPLE__ || defined(MACOSX)
+#else
+    #include <GL/glx.h>
+#endif
+
+
+
 CL::CL()
 {
     printf("Initialize OpenCL object and context\n");
