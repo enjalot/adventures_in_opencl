@@ -22,7 +22,6 @@ CL::CL()
 {
     printf("Initialize OpenCL object and context\n");
     //setup devices and context
-    
     std::vector<cl::Platform> platforms;
     err = cl::Platform::get(&platforms);
     printf("cl::Platform::get(): %s\n", oclErrorString(err));
@@ -36,9 +35,12 @@ CL::CL()
     printf("type: device: %d CL_DEVICE_TYPE_GPU: %d \n", t, CL_DEVICE_TYPE_GPU);
 
     // Define OS-specific context properties and create the OpenCL context
-    //#if defined (__APPLE_CC__)
+    // We setup OpenGL context sharing slightly differently on each OS
+    // this code comes mostly from NVIDIA's SDK examples
+    // we could also check to see if the device supports GL sharing
+    // but that is just searching through the properties
+    // an example is avaible in the NVIDIA code
     #if defined (__APPLE__) || defined(MACOSX)
-        printf("in the apple context stuff\n");
         CGLContextObj kCGLContext = CGLGetCurrentContext();
         CGLShareGroupObj kCGLShareGroup = CGLGetShareGroup(kCGLContext);
         cl_context_properties props[] =
@@ -46,7 +48,7 @@ CL::CL()
             CL_CONTEXT_PROPERTY_USE_CGL_SHAREGROUP_APPLE, (cl_context_properties)kCGLShareGroup,
             0
         };
-
+        //Apple's implementation is weird, and the default values assumed by cl.hpp don't work
         //this works
         //cl_context cxGPUContext = clCreateContext(props, 0, 0, NULL, NULL, &err);
         //these dont
@@ -117,12 +119,11 @@ void CL::loadProgram(std::string kernel_source)
     
     pl = kernel_source.size();
     printf("kernel size: %d\n", pl);
-    printf("kernel: \n %s\n", kernel_source.c_str());
+    //printf("kernel: \n %s\n", kernel_source.c_str());
     try
     {
         cl::Program::Sources source(1,
             std::make_pair(kernel_source.c_str(), pl));
-   
         program = cl::Program(context, source);
     }
     catch (cl::Error er) {

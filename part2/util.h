@@ -1,4 +1,5 @@
-//from http://www.songho.ca/opengl/gl_vbo.html
+// createVBO routine and my first experience with VBOs from:
+// http://www.songho.ca/opengl/gl_vbo.html
 
 #ifndef ADVCL_UTIL_H_INCLUDED
 #define ADVCL_UTIL_H_INCLUDED

@@ -7,13 +7,14 @@
 
 void CL::loadData(std::vector<Vec4> pos, std::vector<Vec4> vel, std::vector<Vec4> col)
 {
-
+    //store the number of particles and the size in bytes of our arrays
     num = pos.size();
     array_size = num * sizeof(Vec4);
     //create VBOs (defined in util.cpp)
     p_vbo = createVBO(&pos[0], array_size, GL_ARRAY_BUFFER, GL_DYNAMIC_DRAW);
     c_vbo = createVBO(&col[0], array_size, GL_ARRAY_BUFFER, GL_DYNAMIC_DRAW);
 
+    //make sure OpenGL is finished before we proceed
     glFinish();
 #ifdef GL_INTEROP
     printf("gl interop!\n");

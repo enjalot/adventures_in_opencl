@@ -3,6 +3,7 @@
  * Part 2
  *
  * author: Ian Johnson
+ * htt://enja.org
  * code based on advisor Gordon Erlebacher's work
  * NVIDIA's examples
  * as well as various blogs and resources on the internet
@@ -22,6 +23,7 @@
     #include <GL/glut.h>
 #endif
 
+//Our OpenCL Particle Systemclass
 #include "cll.h"
 
 #define NUM_PARTICLES 1000
@@ -46,6 +48,7 @@ void appMouse(int button, int state, int x, int y);
 void appMotion(int x, int y);
 
 //----------------------------------------------------------------------
+//quick random function to distribute our initial points
 float rand_float(float mn, float mx)
 {
     float r = random() / (float) RAND_MAX;
@@ -53,10 +56,12 @@ float rand_float(float mn, float mx)
 }
 
 
+//----------------------------------------------------------------------
 int main(int argc, char** argv)
 {
     printf("Hello, OpenCL\n");
     //Setup our GLUT window and OpenGL related things
+    //glut callback functions are setup here too
     init_gl(argc, argv);
 
     //initialize our CL object, this sets up the context
@@ -66,6 +71,7 @@ int main(int argc, char** argv)
     #include "part2.cl" //std::string kernel_source is defined in this file
     example->loadProgram(kernel_source);
 
+    //initialize our particle system with positions, velocities and color
     int num = NUM_PARTICLES;
     std::vector<Vec4> pos(num);
     std::vector<Vec4> vel(num);
@@ -74,35 +80,43 @@ int main(int argc, char** argv)
     //fill our vectors with initial data
     for(int i = 0; i < num; i++)
     {
+        //distribute the particles in a random circle around z axis
         float rad = rand_float(.2, .5);
         float x = rad*sin(2*3.14 * i/num);
         float z = 0.0f;// -.1 + .2f * i/num;
         float y = rad*cos(2*3.14 * i/num);
         pos[i] = Vec4(x, y, z, 1.0f);
         
+        //give some initial velocity 
         float xr = rand_float(-.1, .1);
         float yr = rand_float(1.f, 3.f);
+        //the life is the lifetime of the particle: 1 = alive 0 = dead
+        //as you will see in part2.cl we reset the particle when it dies
         float life_r = rand_float(0.f, 1.f);
-
         vel[i] = Vec4(xr, yr, 3.0f, life_r);
+
+        //just make them red and full alpha
         color[i] = Vec4(1.0f, 0.0f,0.0f, 1.0f);
     }
 
-    printf("about to load data\n");
-    //our load data function sets up 
+    //our load data function sends our initial values to the GPU
     example->loadData(pos, vel, color);
-    //initialize the kernel and send data from the CPU to the GPU
-    printf("about to do popcorn\n");
+    //initialize the kernel
     example->popCorn();
     
+    //this starts the GLUT program, from here on out everything we want
+    //to do needs to be done in glut callback functions
     glutMainLoop();
 
 }
 
+
+//----------------------------------------------------------------------
 void appRender()
 {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+    //this updates the particle system by calling the kernel
     example->runKernel();
 
     //render the particles from VBOs
@@ -137,6 +151,7 @@ void appRender()
 }
 
 
+//----------------------------------------------------------------------
 void init_gl(int argc, char** argv)
 {
 
@@ -175,13 +190,14 @@ void init_gl(int argc, char** argv)
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
     glTranslatef(0.0, 0.0, translate_z);
-    //glRotatef(-90, 1.0, 0.0, 0.0);
 
 }
 
+
+//----------------------------------------------------------------------
 void appDestroy()
 {
-
+    //this makes sure we properly cleanup our OpenCL context
     delete example;
     if(glutWindowHandle)glutDestroyWindow(glutWindowHandle);
     printf("about to exit!\n");
@@ -189,14 +205,20 @@ void appDestroy()
     exit(0);
 }
 
+
+//----------------------------------------------------------------------
 void timerCB(int ms)
 {
+    //this makes sure the appRender function is called every ms miliseconds
     glutTimerFunc(ms, timerCB, ms);
     glutPostRedisplay();
 }
 
+
+//----------------------------------------------------------------------
 void appKeyboard(unsigned char key, int x, int y)
 {
+    //this way we can exit the program cleanly
     switch(key)
     {
         case '\033': // escape quits
@@ -209,8 +231,11 @@ void appKeyboard(unsigned char key, int x, int y)
     }
 }
 
+
+//----------------------------------------------------------------------
 void appMouse(int button, int state, int x, int y)
 {
+    //handle mouse interaction for rotating/zooming the view
     if (state == GLUT_DOWN) {
         mouse_buttons |= 1<<button;
     } else if (state == GLUT_UP) {
@@ -219,11 +244,13 @@ void appMouse(int button, int state, int x, int y)
 
     mouse_old_x = x;
     mouse_old_y = y;
-    //glutPostRedisplay();
 }
 
+
+//----------------------------------------------------------------------
 void appMotion(int x, int y)
 {
+    //hanlde the mouse motion for zooming and rotating the view
     float dx, dy;
     dx = x - mouse_old_x;
     dy = y - mouse_old_y;
@@ -245,7 +272,6 @@ void appMotion(int x, int y)
     glTranslatef(0.0, 0.0, translate_z);
     glRotatef(rotate_x, 1.0, 0.0, 0.0);
     glRotatef(rotate_y, 0.0, 1.0, 0.0);
-    //glutPostRedisplay();
 }
 
 
