@@ -71,6 +71,7 @@ void CL::runKernel()
         printf("c_done[%d] = %g\n", i, c_done[i]);
     }
 
+    //delete c_done;
 }
 
 

@@ -23,7 +23,7 @@ class CL {
 
         //default constructor initializes OpenCL context and automatically chooses platform and device
         CL();
-        //default constructor releases OpenCL objects and frees device memory
+        //default destructor releases OpenCL objects and frees device memory
         ~CL();
 
         //load an OpenCL program from a file
