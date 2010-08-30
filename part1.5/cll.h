@@ -28,7 +28,7 @@ class CL {
 
         //load an OpenCL program from a file
         //pass in the kernel source code as a string. handy way to get this from STRINGIFY macro in part1.cl
-        void loadProgram(const char* kernel_source);
+        void loadProgram(std::string kernel_source);
 
         //setup the data for the kernel 
         //these are implemented in part1.cpp (in the future we will make these more general)

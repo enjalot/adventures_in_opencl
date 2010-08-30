@@ -16,6 +16,7 @@
 
 
 //OpenGL stuff
+#include <GL/glew.h>
 #if defined __APPLE__ || defined(MACOSX)
     #include <GLUT/glut.h>
 #else
@@ -170,6 +171,8 @@ void init_gl(int argc, char** argv)
     glutKeyboardFunc(appKeyboard);
     glutMouseFunc(appMouse);
     glutMotionFunc(appMotion);
+
+    glewInit();
 
     glClearColor(0.0, 0.0, 0.0, 1.0);
     glDisable(GL_DEPTH_TEST);

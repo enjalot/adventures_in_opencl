@@ -93,6 +93,7 @@ void CL::buildExecutable()
     
     printf("building the program\n");
     // build the program
+    //err = clBuildProgram(program, 0, NULL, "-cl-nv-verbose", NULL, NULL);
     err = clBuildProgram(program, 0, NULL, NULL, NULL, NULL);
     printf("clBuildProgram: %s\n", oclErrorString(err));
 	if(err != CL_SUCCESS){

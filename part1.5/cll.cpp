@@ -81,76 +81,39 @@ CL::~CL()
 }
 
 
-void CL::loadProgram(const char* kernel_source)
+void CL::loadProgram(std::string kernel_source)
 {
- // Program Setup
+    //Program Setup
     int pl;
     //size_t program_length;
     printf("load the program\n");
     
-    //CL_SOURCE_DIR is set in the CMakeLists.txt
-    /*
-    std::string path(CL_SOURCE_DIR);
-    path += "/" + std::string(relative_path);
-    printf("path: %s\n", path.c_str());
-    */
-    //file_contents is defined in util.cpp
-    //it loads the contents of the file at the given path
-    //char* cSourceCL = file_contents(path.c_str(), &pl);
-    //#include "part1.cl"
-    cl::Program::Sources source(1,
-        std::make_pair(kernel_source,pl));
-    
-    program = cl::Program(context, source);
+    pl = kernel_source.size();
+    printf("kernel size: %d\n", pl);
+    //printf("kernel: \n %s\n", kernel_source.c_str());
+    try
+    {
+        cl::Program::Sources source(1,
+            std::make_pair(kernel_source.c_str(), pl));
+        program = cl::Program(context, source);
+    }
+    catch (cl::Error er) {
+        printf("ERROR: %s(%s)\n", er.what(), oclErrorString(er.err()));
+    }
 
-    err = program.build(devices);
-    printf("program.build: %s\n", oclErrorString(err));
-    if(err != CL_SUCCESS){
-		std::cout << "Build Status: " << program.getBuildInfo<CL_PROGRAM_BUILD_STATUS>(devices[0]) << std::endl;
-		std::cout << "Build Options:\t" << program.getBuildInfo<CL_PROGRAM_BUILD_OPTIONS>(devices[0]) << std::endl;
-		std::cout << "Build Log:\t " << program.getBuildInfo<CL_PROGRAM_BUILD_LOG>(devices[0]) << std::endl;
-	} 
-    //std::string str = program.getBuildInfo(devices[deviceUsed]);
-    //printf("Build Log:\n %s \n", str.c_str());
+    printf("build program\n");
+    try
+    {
+        err = program.build(devices);
+    }
+    catch (cl::Error er) {
+        printf("program.build: %s\n", oclErrorString(er.err()));
+    //if(err != CL_SUCCESS){
+    }
+    printf("done building program\n");
+	std::cout << "Build Status: " << program.getBuildInfo<CL_PROGRAM_BUILD_STATUS>(devices[0]) << std::endl;
+	std::cout << "Build Options:\t" << program.getBuildInfo<CL_PROGRAM_BUILD_OPTIONS>(devices[0]) << std::endl;
+	std::cout << "Build Log:\t " << program.getBuildInfo<CL_PROGRAM_BUILD_LOG>(devices[0]) << std::endl;
 
-    //printf("file: %s\n", cSourceCL);
-    /*
-    program_length = (size_t)pl;
-
-    // create the program
-    program = clCreateProgramWithSource(context, 1,
-                      (const char **) &cSourceCL, &program_length, &err);
-    printf("clCreateProgramWithSource: %s\n", oclErrorString(err));
-
-    buildExecutable();
-    */
 }
-
-/*
-//----------------------------------------------------------------------
-void CL::buildExecutable()
-{
-    // Build the program executable
-    
-    printf("building the program\n");
-    // build the program
-    err = clBuildProgram(program, 0, NULL, NULL, NULL, NULL);
-    printf("clBuildProgram: %s\n", oclErrorString(err));
-	if(err != CL_SUCCESS){
-		cl_build_status build_status;
-		err = clGetProgramBuildInfo(program, devices[deviceUsed], CL_PROGRAM_BUILD_STATUS, sizeof(cl_build_status), &build_status, NULL);
-
-		char *build_log;
-		size_t ret_val_size;
-		err = clGetProgramBuildInfo(program, devices[deviceUsed], CL_PROGRAM_BUILD_LOG, 0, NULL, &ret_val_size);
-
-		build_log = new char[ret_val_size+1];
-		err = clGetProgramBuildInfo(program, devices[deviceUsed], CL_PROGRAM_BUILD_LOG, ret_val_size, build_log, NULL);
-		build_log[ret_val_size] = '\0';
-		printf("BUILD LOG: \n %s", build_log);
-	}
-
-    //printf("program built\n");
-}
-*/
 
