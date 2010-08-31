@@ -27,13 +27,13 @@ CL::CL()
     err = clGetDeviceIDs(platform, CL_DEVICE_TYPE_GPU, numDevices, devices, NULL);
     printf("clGetDeviceIDs (create device list): %s\n", oclErrorString(err));
  
+    //create the context
+    context = clCreateContext(0, 1, devices, NULL, NULL, &err);
 
     //for right now we just use the first available device
     //later you may have criteria (such as support for different extensions)
     //that you want to use to select the device
     deviceUsed = 0;
-    //create the context
-    context = clCreateContext(0, 1, &devices[deviceUsed], NULL, NULL, &err);
     
     //create the command queue we will use to execute OpenCL commands
     command_queue = clCreateCommandQueue(context, devices[deviceUsed], 0, &err);
