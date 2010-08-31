@@ -83,7 +83,9 @@ void CL::loadProgram(const char* relative_path)
     printf("clCreateProgramWithSource: %s\n", oclErrorString(err));
 
     buildExecutable();
-   
+
+    //Free buffer returned by file_contents
+    free(cSourceCL);
 }
 
 //----------------------------------------------------------------------
