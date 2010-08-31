@@ -61,8 +61,8 @@ void CL::runKernel()
     clFinish(command_queue);
 
     //lets check our calculations by reading from the device memory and printing out the results
-    float *c_done;
-    err = clEnqueueReadBuffer(command_queue, cl_c, CL_TRUE, 0, sizeof(float) * num, c_done, 0, NULL, &event);
+    float c_done[num];
+    err = clEnqueueReadBuffer(command_queue, cl_c, CL_TRUE, 0, sizeof(float) * num, &c_done, 0, NULL, &event);
     printf("clEnqueueReadBuffer: %s\n", oclErrorString(err));
     clReleaseEvent(event);
 
@@ -70,8 +70,6 @@ void CL::runKernel()
     {
         printf("c_done[%d] = %g\n", i, c_done[i]);
     }
-
-    //delete c_done;
 }
 
 
