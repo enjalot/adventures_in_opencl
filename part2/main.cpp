@@ -88,12 +88,12 @@ int main(int argc, char** argv)
         pos[i] = Vec4(x, y, z, 1.0f);
         
         //give some initial velocity 
-        float xr = rand_float(-.1, .1);
-        float yr = rand_float(1.f, 3.f);
+        //float xr = rand_float(-.1, .1);
+        //float yr = rand_float(1.f, 3.f);
         //the life is the lifetime of the particle: 1 = alive 0 = dead
         //as you will see in part2.cl we reset the particle when it dies
         float life_r = rand_float(0.f, 1.f);
-        vel[i] = Vec4(xr, yr, 3.0f, life_r);
+        vel[i] = Vec4(0.0, 0.0, 3.0f, life_r);
 
         //just make them red and full alpha
         color[i] = Vec4(1.0f, 0.0f,0.0f, 1.0f);

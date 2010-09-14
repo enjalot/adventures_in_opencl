@@ -7,7 +7,11 @@
 
 #if defined __APPLE__ || defined(MACOSX)
 #else
-    #include <GL/glx.h>
+    #if defined WIN32
+    #else
+        //needed for context sharing functions
+        #include <GL/glx.h>
+    #endif
 #endif
 
 
