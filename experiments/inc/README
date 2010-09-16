@@ -1,8 +1,14 @@
-Adventures in OpenCL: Part 1.5
+Adventures in OpenCL: experimenting with #includes on Apple OpenCL Implementation
 http://enja.org
 
-Getting Started: building and running a minimalist kernel (with C++ headers)
-This is the same code as part1, just converted to use OpenCL C++ Bindings.
+If you build and run this program, you will get the expected results (two arrays are summed as a linear combination).
+If you modify inc.cl after building and running, the modification will not be detected by the Apple OpenCL compiler.
+Once you modify a.cl after modifying inc.cl the changes will be picked up... but only for a.cl (you must also modify b.cl in some way).
+
+I even found that changing the modification back will result in the previous behavior.
+
+None of this happens on NVIDIA stack on Ubuntu, i.e. it detects changes in #included files...
+
 
 Build:
 make a build directory and build the tutorial
@@ -12,9 +18,6 @@ cmake ..
 make
 
 execute the example program
-./part1.x
+./inc.x
 
 
-NOTES:
-Followed this tutorial to convert from C headers to C++
-http://developer.amd.com/gpu/ATIStreamSDK/ImageConvolutionOpenCL/Pages/ImageConvolutionUsingOpenCL_3.aspx
