@@ -81,20 +81,24 @@ CL::~CL()
 }
 
 
-void CL::loadProgram(std::string kernel_source)
+cl::Program CL::loadProgram(std::string path)
 {
     //Program Setup
-    int pl;
-    //size_t program_length;
+    cl::Program program;
     printf("load the program\n");
     
-    pl = kernel_source.size();
+
+    int pl;
+    char *kernel_source;
+    kernel_source = file_contents(path.c_str(), &pl);
+
+    //pl = kernel_source.size();
     printf("kernel size: %d\n", pl);
     //printf("kernel: \n %s\n", kernel_source.c_str());
     try
     {
         cl::Program::Sources source(1,
-            std::make_pair(kernel_source.c_str(), pl));
+            std::make_pair(kernel_source, pl));
         program = cl::Program(context, source);
     }
     catch (cl::Error er) {
@@ -104,7 +108,9 @@ void CL::loadProgram(std::string kernel_source)
     printf("build program\n");
     try
     {
-        err = program.build(devices);
+        std::string includes(CL_SOURCE_DIR);
+        includes = "-I" + includes;
+        err = program.build(devices, includes.c_str());
     }
     catch (cl::Error er) {
         printf("program.build: %s\n", oclErrorString(er.err()));
@@ -115,5 +121,6 @@ void CL::loadProgram(std::string kernel_source)
 	std::cout << "Build Options:\t" << program.getBuildInfo<CL_PROGRAM_BUILD_OPTIONS>(devices[0]) << std::endl;
 	std::cout << "Build Log:\t " << program.getBuildInfo<CL_PROGRAM_BUILD_LOG>(devices[0]) << std::endl;
 
+    return program;
 }
 
