@@ -20,6 +20,8 @@ typedef struct Params
 class CL {
     public:
 
+        //cpu side arrays
+        std::vector<float> a, b;
         //These are arrays we will use in this tutorial
         cl::Buffer cl_a;
         cl::Buffer cl_b;

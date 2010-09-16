@@ -28,8 +28,8 @@ void CL::popCorn()
 
     //initialize our CPU memory arrays, send them to the device and set the kernel arguements
     num = 10;
-    float *a = new float[num];
-    float *b = new float[num];
+    a.resize(num);
+    b.resize(num);
     for(int i=0; i < num; i++)
     {
         a[i] = 1.0f * i;
@@ -53,8 +53,9 @@ void CL::popCorn()
 
     printf("Pushing data to the GPU\n");
     //push our CPU arrays to the GPU
-    err = queue.enqueueWriteBuffer(cl_a, CL_TRUE, 0, array_size, a, NULL, &event);
-    err = queue.enqueueWriteBuffer(cl_b, CL_TRUE, 0, array_size, b, NULL, &event);
+    //we can pass the address of the first element of our vector since it is a tightly packed array
+    err = queue.enqueueWriteBuffer(cl_a, CL_TRUE, 0, array_size, &a[0], NULL, &event);
+    err = queue.enqueueWriteBuffer(cl_b, CL_TRUE, 0, array_size, &b[0], NULL, &event);
     
     //write the params struct to GPU memory as a buffer
     err = queue.enqueueWriteBuffer(cl_params, CL_TRUE, 0, sizeof(Params), &params, NULL, &event);
@@ -74,10 +75,6 @@ void CL::popCorn()
 
     //Wait for the command queue to finish these commands before proceeding
     queue.finish();
- 
-    //for now we make the workgroup size the same as the number of elements in our arrays
-    delete a;
-    delete b;
 }
 
 
@@ -95,15 +92,18 @@ void CL::runKernel()
     queue.finish();
 
     //lets check our calculations by reading from the device memory and printing out the results
-    float c_done[num];
-    ///err = clEnqueueReadBuffer(command_queue, cl_c, CL_TRUE, 0, sizeof(float) * num, c_done, 0, NULL, &event);
-    err = queue.enqueueReadBuffer(cl_c_a, CL_TRUE, 0, sizeof(float) * num, &c_done, NULL, &event);
+    float c_a_gpu[num];
+    float c_b_gpu[num];
+
+    err = queue.enqueueReadBuffer(cl_c_a, CL_TRUE, 0, sizeof(float) * num, &c_a_gpu, NULL, &event);
+    err = queue.enqueueReadBuffer(cl_c_b, CL_TRUE, 0, sizeof(float) * num, &c_b_gpu, NULL, &event);
     printf("clEnqueueReadBuffer: %s\n", oclErrorString(err));
     //clReleaseEvent(event);
 
     for(int i=0; i < num; i++)
     {
-        printf("c_done[%d] = %g\n", i, c_done[i]);
+        printf("c_a_gpu[%d] = %g  \t c_b_gpu[%d] = %g\n", 
+                i, c_a_gpu[i], i, i, c_b_gpu[i]);
     }
 }
 
