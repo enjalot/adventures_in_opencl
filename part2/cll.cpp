@@ -131,6 +131,7 @@ void CL::loadProgram(std::string kernel_source)
     printf("build program\n");
     try
     {
+        //err = program.build(devices, "-cl-nv-verbose -cl-nv-maxrregcount=100");
         err = program.build(devices);
     }
     catch (cl::Error er) {

@@ -98,7 +98,7 @@ void CL::buildExecutable()
     //err = clBuildProgram(program, 0, NULL, "-cl-nv-verbose", NULL, NULL);
     err = clBuildProgram(program, 0, NULL, NULL, NULL, NULL);
     printf("clBuildProgram: %s\n", oclErrorString(err));
-	if(err != CL_SUCCESS){
+	//if(err != CL_SUCCESS){
 		cl_build_status build_status;
 		err = clGetProgramBuildInfo(program, devices[deviceUsed], CL_PROGRAM_BUILD_STATUS, sizeof(cl_build_status), &build_status, NULL);
 
@@ -110,7 +110,7 @@ void CL::buildExecutable()
 		err = clGetProgramBuildInfo(program, devices[deviceUsed], CL_PROGRAM_BUILD_LOG, ret_val_size, build_log, NULL);
 		build_log[ret_val_size] = '\0';
 		printf("BUILD LOG: \n %s", build_log);
-	}
+	//}
     printf("program built\n");
 }
 
