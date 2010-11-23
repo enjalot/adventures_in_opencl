@@ -27,8 +27,9 @@ ELSE (WIN32)
         /opt/local/include
         DOC "The directory where GL/glew.h resides")
     FIND_LIBRARY( GLEW_LIBRARY
-        NAMES GLEW glew
+        NAMES GLEW.1.5.1 GLEW glew
         PATHS
+        /Developer/GPU_Computing/shared/lib/darwin
         /usr/lib64
         /usr/lib
         /usr/local/lib64
