@@ -26,7 +26,7 @@
 //Our OpenCL Particle Systemclass
 #include "cll.h"
 
-#define NUM_PARTICLES 20000
+#define NUM_PARTICLES 200000
 //#define NUM_PARTICLES 1000
 CL* example;
 
@@ -227,27 +227,33 @@ void init_gl(int argc, char** argv)
     glutKeyboardFunc(appKeyboard);
     glutMouseFunc(appMouse);
     glutMotionFunc(appMotion);
-    //glutReshapeFunc(appReshape);
+    glutReshapeFunc(appReshape);
 
     glewInit();
 
     glClearColor(0.0, 0.0, 0.0, 1.0);
     glDisable(GL_DEPTH_TEST);
 
-    // viewport
-    glViewport(0, 0, window_width, window_height);
 
     // projection
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    gluPerspective(90.0, (GLfloat)window_width / (GLfloat) window_height, 0.1, 1000.0);
+    //gluPerspective(90.0, (GLfloat)window_width / (GLfloat) window_height, 0.1, 1000.0);
+    //glOrtho(0,1,0,1,-1,1);
+    gluOrtho2D(0,1,0,1);
 
     // set view matrix
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
-    //gluLookAt(0,0,-1, 0, 0, 0, 0, 0, 1);
-    glTranslatef(translate_x, translate_y, translate_z);
+    // viewport
+    glViewport(0, 0, window_width, window_height);
+/*
+    gluLookAt(  0., 0., 1., 
+                0., 0., 0., 
+                0., 0., -1.);
+*/
+    //glTranslatef(translate_x, translate_y, translate_z);
 
 }
 
@@ -255,6 +261,12 @@ void appReshape(int new_width, int new_height)
 {
     window_width = new_width;
     window_height = new_height;
+
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+    // viewport
+    glViewport(0, 0, window_width, window_height);
+
 }
 
 //----------------------------------------------------------------------
@@ -302,11 +314,16 @@ void appMouse(int button, int state, int x, int y)
     if (state == GLUT_DOWN) {
         mouse_buttons |= 1<<button;
 
+        float ww = glutGet(GLUT_WINDOW_WIDTH);
+        float wh = glutGet(GLUT_WINDOW_HEIGHT);
+
         //set forcefield position       
         //should calculate some projected coordinate
         printf("x: %d, y:%d\n", x, y);
-        float xx = (float)x/window_width;
-        float yy = (window_height - (float)y)/window_width;
+        float xx = ((float)x)/ww;
+        float yy = (wh - (float)y)/wh;
+        printf("xx: %f, yy: %f\n", xx, yy);
+
         example->setForce(xx, yy);
 
     } else if (state == GLUT_UP) {
@@ -326,14 +343,15 @@ void appMotion(int x, int y)
     dx = x - mouse_old_x;
     dy = y - mouse_old_y;
 
-    float ww = glutGet(GLUT_SCREEN_WIDTH);
-    float wh = glutGet(GLUT_SCREEN_HEIGHT);
+    float ww = glutGet(GLUT_WINDOW_WIDTH);
+    float wh = glutGet(GLUT_WINDOW_HEIGHT);
+
     if (mouse_buttons & 1) {
         //set forcefield position       
         //should calculate some projected coordinate
         printf("x: %d, y:%d\n", x, y);
-        float xx = (float)x/ww;
-        float yy = (wh - (float)y)/ww;
+        float xx = ((float)x)/ww;
+        float yy = (wh - (float)y)/wh;
         example->setForce(xx, yy);
 
         //translate_x += dx *.2;
@@ -361,9 +379,11 @@ void appMotion(int x, int y)
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
-    glTranslatef(translate_x, translate_y, translate_z);
-    glRotatef(rotate_x, 1.0, 0.0, 0.0);
-    glRotatef(rotate_y, 0.0, 1.0, 0.0);
+
+    glViewport(0, 0, window_width, window_height);
+    //glTranslatef(translate_x, translate_y, translate_z);
+    //glRotatef(rotate_x, 1.0, 0.0, 0.0);
+    //glRotatef(rotate_y, 0.0, 1.0, 0.0);
 }
 
 

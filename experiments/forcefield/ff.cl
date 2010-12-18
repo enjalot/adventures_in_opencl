@@ -58,7 +58,7 @@ __kernel void ff(__global float4* pos, __global float4* color, __global float4* 
     //we've stored the life in the fourth component of our velocity array
     float life = vel[i].w;
     //decrease the life by the time step (this value could be adjusted to lengthen or shorten particle life
-    life -= dt*1.0f;
+    life -= dt*.1f;
     //if the life is 0 or less we reset the particle's values back to the original values and set life to 1
     if(life <= 0)
     {
@@ -90,8 +90,8 @@ __kernel void ff(__global float4* pos, __global float4* color, __global float4* 
 
     //you can manipulate the color based on properties of the system
     //here we adjust the alpha
-    float colx = f.x;
-    float coly = f.y;
+    float colx = v.x;
+    float coly = v.y;
     colx = colx;
     coly = coly;
     if(colx < 0) {colx = -1.0f*colx;}
