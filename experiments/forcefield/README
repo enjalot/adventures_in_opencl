@@ -1,0 +1,19 @@
+Adventures in OpenCL: Part 2
+http://enja.org
+
+We demonstrate OpenCL and OpenGL context sharing by making a simple particle system.
+
+Build:
+make a build directory and build the tutorial
+mkdir build
+cd build
+cmake ..
+make
+
+execute the example program
+./part2.x
+
+
+NOTES:
+Followed this tutorial to learn about VBOs
+http://www.songho.ca/opengl/gl_vbo.html
