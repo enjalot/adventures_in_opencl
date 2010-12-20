@@ -13,9 +13,9 @@ IF (WIN32)
 
     # TODO this is only a hack assuming the 64 bit library will
     # not be found on 32 bit system
-    FIND_LIBRARY(OPENCL_LIBRARIES opencl64 )
+    FIND_LIBRARY(OPENCL_LIBRARIES opencl ) #used to say opencl64
     IF( OPENCL_LIBRARIES )
-        FIND_LIBRARY(OPENCL_LIBRARIES opencl32 )
+        FIND_LIBRARY(OPENCL_LIBRARIES opencl ) #used to say opencl32
     ENDIF( OPENCL_LIBRARIES )
 
 ELSE (WIN32)
@@ -31,7 +31,11 @@ ELSE (WIN32)
     #SET(inc  $ENV{CUDA_LOCAL}/../OpenCL/common/inc /usr/include)
     #FIND_PATH(OPENCL_INCLUDE_DIR CL/cl.h PATHS ${inc} /usr/include )
 
+    message("lib path: $ENV{LD_LIBRARY_PATH}")
+    #FIND_LIBRARY(OPENCL_LIBRARIES OpenCL $ENV{LD_LIBRARY_PATH})
     FIND_LIBRARY(OPENCL_LIBRARIES OpenCL ENV LD_LIBRARY_PATH)
+    message("==============")
+    message("opencl_libraries: ${OPENCL_LIBRARIES}")
 
     #message(***** OPENCL ENV: "$ENV{GPU_SDK}" ********)
 
