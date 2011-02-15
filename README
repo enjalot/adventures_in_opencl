@@ -5,8 +5,13 @@ Florida State University Department of Scientific Computing
 http://sc.fsu.edu
 
 Tutorials
-part1 - getting started: making and running a minimal opencl kernel
-part1.5 - getting started with C++ bindings: making and running a minimal opencl kernel
+C:
+    part1 - getting started: making and running a minimal opencl kernel
+C++:
+    part1.5 - getting started with C++ bindings: making and running a minimal opencl kernel
+    part2 - using OpenGL and OpenCL together, illustrated with a simple particle system
+Python:
+    part1 - getting started, simple port of part1
 
 Supporting directories
 cmake - cmake modules for finding necessary libraries

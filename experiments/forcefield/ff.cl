@@ -98,7 +98,7 @@ __kernel void ff(__global float4* pos, __global float4* color, __global float4* 
     if(colx > 1) {colx = 1.0f;}
     if(coly < 0) {coly = -1.0f*coly;}
     if(coly > 1) {coly = 1.0f;}
-    color[i].x = .5*(1.0f - colx);
+    color[i].x = (1.0f - colx);
     color[i].y = coly;
     color[i].z = colx;
     color[i].w = life;
