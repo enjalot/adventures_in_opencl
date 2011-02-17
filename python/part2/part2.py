@@ -1,9 +1,4 @@
-from OpenGL.GL import *
-from OpenGL.GLU import *
-#from OpenGL.GLUT import *
-#from OpenGL.raw.GL.VERSION.GL_1_5 import glBufferData as rawGlBufferData
-#from OpenGL import platform, GLX, WGL 
-from OpenGL.arrays import vbo
+from OpenGL.GL import GL_ARRAY_BUFFER, GL_DYNAMIC_DRAW, glFlush
 
 import pyopencl as cl
 
@@ -13,30 +8,15 @@ import numpy
 class CL:
     def __init__(self):
         plats = cl.get_platforms()
-        ctx_props = cl.context_properties
-
-        props = [(ctx_props.PLATFORM, plats[0])] 
-
+        from pyopencl.tools import get_gl_sharing_context_properties
         import sys 
-        if sys.platform == "linux2":
-            props.append(
-                    (ctx_props.GL_CONTEXT_KHR, platform.GetCurrentContext()))
-            props.append(
-                    (ctx_props.GLX_DISPLAY_KHR, 
-                        GLX.glXGetCurrentDisplay()))
-        elif sys.platform == "win32":
-            props.append(
-                    (ctx_props.GL_CONTEXT_KHR, platform.GetCurrentContext()))
-            props.append(
-                    (ctx_props.WGL_HDC_KHR, 
-                        WGL.wglGetCurrentDC()))
-        elif sys.platform == "darwin":
-            pass
+        if sys.platform == "darwin":
+            self.ctx = cl.Context(properties=get_gl_sharing_context_properties(),
+                             devices=[])
         else:
-            raise NotImplementedError("platform '%s' not yet supported" 
-                    % sys.platform)
-
-        self.ctx = cl.Context(properties=props)
+            self.ctx = cl.Context(properties=[
+                (cl.context_properties.PLATFORM, plats[0])]
+                + get_gl_sharing_context_properties())
         self.queue = cl.CommandQueue(self.ctx)
 
     
@@ -49,25 +29,25 @@ class CL:
         #create the program
         self.program = cl.Program(self.ctx, fstr).build()
 
-    def loadData(self, pos, col, vel):
+    def loadData(self, pos_vbo, col_vbo, vel):
         mf = cl.mem_flags
-        self.pos = pos
-        self.col = col
+        self.pos_vbo = pos_vbo
+        self.col_vbo = col_vbo
+
+        self.pos = pos_vbo.data
+        self.col = col_vbo.data
         self.vel = vel
 
         #Setup vertex buffer objects and share them with OpenCL as GLBuffers
-        self.pos_vbo = vbo.VBO(data=pos, usage=GL_DYNAMIC_DRAW, target=GL_ARRAY_BUFFER)
         self.pos_vbo.bind()
         self.pos_cl = cl.GLBuffer(self.ctx, mf.READ_WRITE, int(self.pos_vbo.buffers[0]))
-
-        self.col_vbo = vbo.VBO(data=col, usage=GL_DYNAMIC_DRAW, target=GL_ARRAY_BUFFER)
         self.col_vbo.bind()
         self.col_cl = cl.GLBuffer(self.ctx, mf.READ_WRITE, int(self.col_vbo.buffers[0]))
 
         #pure OpenCL arrays
         self.vel_cl = cl.Buffer(self.ctx, mf.READ_ONLY | mf.COPY_HOST_PTR, hostbuf=vel)
-        self.pos_gen_cl = cl.Buffer(self.ctx, mf.READ_ONLY | mf.COPY_HOST_PTR, hostbuf=pos)
-        self.vel_gen_cl = cl.Buffer(self.ctx, mf.READ_ONLY | mf.COPY_HOST_PTR, hostbuf=vel)
+        self.pos_gen_cl = cl.Buffer(self.ctx, mf.READ_ONLY | mf.COPY_HOST_PTR, hostbuf=self.pos)
+        self.vel_gen_cl = cl.Buffer(self.ctx, mf.READ_ONLY | mf.COPY_HOST_PTR, hostbuf=self.vel)
         self.queue.finish()
 
 
