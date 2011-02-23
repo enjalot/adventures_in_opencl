@@ -35,11 +35,11 @@ initrans = Vec([0, 0, -2])
 import wave
 glutil.init(screen)
 
-subintervals = 5
-dt = .002*.25
-dx = .024*.25
-#dt = .09
-#dx = .109
+subintervals = 20
+#dt = .0002
+#dx = .001
+dt = .002*.02
+dx = .024*.02
 wv = wave.Wave(dt, dx, subintervals)
 
 def get_input():

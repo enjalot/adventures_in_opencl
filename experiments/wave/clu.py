@@ -48,57 +48,27 @@ class CL:
         self.queue.finish()
 
 
-    def execute_linear(self, c, dt, dx):
+    def execute(self, choice, k, dt, dx, cll, clu):
         #important to make a scalar arguement into a numpy scalar
-        c = numpy.float32(c)
+        choice = numpy.int32(choice)
+        k = numpy.float32(k)
         dt = numpy.float32(dt)
         dx = numpy.float32(dx)
+        cll = numpy.float32(cll)
+        clu = numpy.float32(clu)
         cl.enqueue_acquire_gl_objects(self.queue, [self.pos_cl, self.col_cl])
         #2nd argument is global work size, 3rd is local work size, rest are kernel args
-        self.program.linear_wave(self.queue, self.pos.shape, None, 
+        self.program.wave(self.queue, self.pos.shape, None, 
                             self.pos_cl, 
                             self.col_cl, 
                             self.vel_cl, 
-                            c,
+                            k,
                             dt,
-                            dx)
+                            dx,
+                            cll,
+                            clu,
+                            choice)
         cl.enqueue_release_gl_objects(self.queue, [self.pos_cl, self.col_cl])
         self.queue.finish()
         glFlush()
- 
-    def execute_quadratic(self, beta, dt, dx):
-        #important to make a scalar arguement into a numpy scalar
-        beta = numpy.float32(beta)
-        dt = numpy.float32(dt)
-        dx = numpy.float32(dx)
-        cl.enqueue_acquire_gl_objects(self.queue, [self.pos_cl, self.col_cl])
-        #2nd argument is global work size, 3rd is local work size, rest are kernel args
-        self.program.quadratic_wave(self.queue, self.pos.shape, None, 
-                            self.pos_cl, 
-                            self.col_cl, 
-                            self.vel_cl, 
-                            beta,
-                            dt,
-                            dx)
-        cl.enqueue_release_gl_objects(self.queue, [self.pos_cl, self.col_cl])
-        self.queue.finish()
-        glFlush()
- 
-    def execute_cubic(self, gamma, dt, dx):
-        #important to make a scalar arguement into a numpy scalar
-        gamma = numpy.float32(gamma)
-        dt = numpy.float32(dt)
-        dx = numpy.float32(dx)
-        cl.enqueue_acquire_gl_objects(self.queue, [self.pos_cl, self.col_cl])
-        #2nd argument is global work size, 3rd is local work size, rest are kernel args
-        self.program.cubic_wave(self.queue, self.pos.shape, None, 
-                            self.pos_cl, 
-                            self.col_cl, 
-                            self.vel_cl, 
-                            gamma,
-                            dt,
-                            dx)
-        cl.enqueue_release_gl_objects(self.queue, [self.pos_cl, self.col_cl])
-        self.queue.finish()
-        glFlush()
- 
+

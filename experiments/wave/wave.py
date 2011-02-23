@@ -27,14 +27,18 @@ class Wave:
         self.dt = dt
         self.dx = dx
         
-        self.c = .1
+        self.c = 10.
         #unstable for quadratic
         self.beta = .016568
         #unstable for cubic
-        self.gamma = .509
-        #self.gamma = .0509
+        #self.gamma = .509
+        self.gamma = .0509
 
-        num = 1./self.dx + 1
+        #num = 1./self.dx + 2
+        print self.dx
+        #xs = numpy.arange(-4., 4. + self.dx, self.dx)
+        xs = numpy.arange(0., 1. + self.dx, self.dx)
+        num = len(xs)
         print num
         #setup initial values of arrays
         pos = numpy.ndarray((num, 4), dtype=numpy.float32)
@@ -44,7 +48,8 @@ class Wave:
         random.seed()
         for i in xrange(0, num):
             #rad = random.uniform(.2, .5);
-            x = i*self.dx
+            #x = i*self.dx
+            x = xs[i]
             z = 0.
             y = sin(2.*numpy.pi * x)
 
@@ -83,9 +88,9 @@ class Wave:
 
     def execute(self):
         for i in xrange(self.subints):
-            #self.cl.execute_linear(self.c, self.dt, self.dx)
-            #self.cl.execute_quadratic(self.beta, self.dt, self.dx)
-            self.cl.execute_cubic(self.gamma, self.dt, self.dx)
+            #self.cl.execute(1, self.c, self.dt, self.dx, -150, 150)
+            #self.cl.execute(2, self.beta, self.dt, self.dx, -12., 12.)
+            self.cl.execute(3, self.gamma, self.dt, self.dx, -1., 1.)
 
 
     def render(self):
