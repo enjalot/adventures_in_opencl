@@ -10,11 +10,12 @@ from clu import CL
        
 
 class Wave:
-    def __init__(self):
+    def __init__(self, dt, dx, subintervals):
 
+        self.subints = subintervals
         #set up initial conditions
         #need to setup VBOs before starting CL context
-        self.initial_conditions()
+        self.initial_conditions(dt, dx)
 
         self.cl = CL()
         self.cl.loadProgram("wave.cl")
@@ -22,8 +23,18 @@ class Wave:
 
         self.cl.loadData(self.pos_vbo, self.col_vbo, self.vel)
 
-    def initial_conditions(self):
-        num = 20000
+    def initial_conditions(self, dt, dx):
+        self.dt = dt
+        self.dx = dx
+        
+        self.c = .1
+        #unstable for quadratic
+        self.beta = .016568
+        #unstable for cubic
+        self.gamma = .509
+
+        num = 1./self.dx + 1
+        print num
         #setup initial values of arrays
         pos = numpy.ndarray((num, 4), dtype=numpy.float32)
         col = numpy.ndarray((num, 4), dtype=numpy.float32)
@@ -31,10 +42,10 @@ class Wave:
 
         random.seed()
         for i in xrange(0, num):
-            rad = random.uniform(.2, .5);
-            x = rad*sin(2*3.14 * i/num)
+            #rad = random.uniform(.2, .5);
+            x = i*self.dx
             z = 0.
-            y = rad*cos(2*3.14 * i/num)
+            y = sin(2.*numpy.pi * x)
 
             pos[i,0] = x
             pos[i,1] = y
@@ -47,9 +58,9 @@ class Wave:
             col[i,3] = 1.
 
             life = random.random()
-            vel[i,0] = x*2.
-            vel[i,1] = y*2.
-            vel[i,2] = 3.
+            vel[i,0] = x    #x*2.
+            vel[i,1] = y    #y*2.
+            vel[i,2] = z    #3.
             vel[i,3] = life
 
         #print pos
@@ -70,7 +81,9 @@ class Wave:
 
 
     def execute(self):
-        self.cl.execute()
+        for i in xrange(self.subints):
+            #self.cl.execute_linear(self.c, self.dt, self.dx)
+            self.cl.execute_quadratic(self.beta, self.dt, self.dx)
 
 
     def render(self):

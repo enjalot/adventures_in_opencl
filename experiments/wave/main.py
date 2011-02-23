@@ -35,7 +35,12 @@ initrans = Vec([0, 0, -2])
 import wave
 glutil.init(screen)
 
-wv = wave.Wave()
+subintervals = 5
+dt = .002
+dx = .024
+#dt = .09
+#dx = .109
+wv = wave.Wave(dt, dx, subintervals)
 
 def get_input():
     global mouse_down, mouse_old, translate, rotate

@@ -48,18 +48,38 @@ class CL:
         self.queue.finish()
 
 
-    def execute(self):
+    def execute_linear(self, c, dt, dx):
         #important to make a scalar arguement into a numpy scalar
-        dt = numpy.float32(.01)
+        c = numpy.float32(c)
+        dt = numpy.float32(dt)
+        dx = numpy.float32(dx)
         cl.enqueue_acquire_gl_objects(self.queue, [self.pos_cl, self.col_cl])
         #2nd argument is global work size, 3rd is local work size, rest are kernel args
-        self.program.wave(self.queue, self.pos.shape, None, 
+        self.program.linear_wave(self.queue, self.pos.shape, None, 
                             self.pos_cl, 
                             self.col_cl, 
                             self.vel_cl, 
-                            self.pos_gen_cl, 
-                            self.vel_gen_cl, 
-                            dt)
+                            c,
+                            dt,
+                            dx)
+        cl.enqueue_release_gl_objects(self.queue, [self.pos_cl, self.col_cl])
+        self.queue.finish()
+        glFlush()
+ 
+    def execute_quadratic(self, beta, dt, dx):
+        #important to make a scalar arguement into a numpy scalar
+        beta = numpy.float32(beta)
+        dt = numpy.float32(dt)
+        dx = numpy.float32(dx)
+        cl.enqueue_acquire_gl_objects(self.queue, [self.pos_cl, self.col_cl])
+        #2nd argument is global work size, 3rd is local work size, rest are kernel args
+        self.program.quadratic_wave(self.queue, self.pos.shape, None, 
+                            self.pos_cl, 
+                            self.col_cl, 
+                            self.vel_cl, 
+                            beta,
+                            dt,
+                            dx)
         cl.enqueue_release_gl_objects(self.queue, [self.pos_cl, self.col_cl])
         self.queue.finish()
         glFlush()
