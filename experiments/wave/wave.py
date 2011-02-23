@@ -32,6 +32,7 @@ class Wave:
         self.beta = .016568
         #unstable for cubic
         self.gamma = .509
+        #self.gamma = .0509
 
         num = 1./self.dx + 1
         print num
@@ -83,7 +84,8 @@ class Wave:
     def execute(self):
         for i in xrange(self.subints):
             #self.cl.execute_linear(self.c, self.dt, self.dx)
-            self.cl.execute_quadratic(self.beta, self.dt, self.dx)
+            #self.cl.execute_quadratic(self.beta, self.dt, self.dx)
+            self.cl.execute_cubic(self.gamma, self.dt, self.dx)
 
 
     def render(self):

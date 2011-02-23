@@ -36,8 +36,8 @@ import wave
 glutil.init(screen)
 
 subintervals = 5
-dt = .002
-dx = .024
+dt = .002*.25
+dx = .024*.25
 #dt = .09
 #dx = .109
 wv = wave.Wave(dt, dx, subintervals)

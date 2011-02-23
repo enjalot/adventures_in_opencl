@@ -49,8 +49,7 @@ __kernel void linear_wave(__global float4* pos, __global float4* color, __global
     //v.w = life;
 
     //update the arrays with our newly computed values
-    pos[i] = newp;
-    pos[i].w = 1.;
+    pos[i].y = newp.y;
     posn1[i] = p;
     posn1[i].w = 1.;
     //vel[i] = v;
@@ -87,11 +86,40 @@ __kernel void quadratic_wave(__global float4* pos, __global float4* color, __glo
     float4 newp = -pn1 + 2.f*p + dt*dt*invdx*invdx*((pjp1 - 2.f*p + pjm1) + k1*((pjp1 -p)*(pjp1-p) - (p-pjm1)*(p-pjm1)));
 
     //update the arrays with our newly computed values
-    pos[i] = newp;
-    pos[i].w = 1.;
+    pos[i].y = newp.y;
     posn1[i] = p;
     posn1[i].w = 1.;
 
 }
 
+__kernel void cubic_wave(__global float4* pos, __global float4* color, __global float4* posn1, float gamma, float dt, float dx)
+{
+    //get our index in the array
+    unsigned int i = get_global_id(0);
+    unsigned int imax = get_global_size(0);
 
+    //periodic boundaries don't seem to work
+    //if(i >= imax-1) return;
+    //if(i == 0) return;
+
+
+    int im1 = i-1;
+    int ip1 = i+1;
+    im1 = im1 < 0 ? imax-1 : im1;
+    ip1 = ip1 > imax ? 0 : ip1;
+    float4 pjm1 = pos[im1];     //p(i-1)
+    float4 p = pos[i];          //p(i)
+    float4 pjp1 = pos[ip1];     //p(i+1)
+    float4 pn1 = posn1[i];      //last time step 
+
+    float invdx = 1.f/dx;
+    //float4 newp = 2.f*p - pn1 + c*c*dt*dt*(pjp1 - 2.f*p + pjm1)/dx/dx;
+    float k2 = gamma*invdx*invdx/4.f;
+    float4 newp = -pn1 + 2.f*p + dt*dt*invdx*invdx*((pjp1 - 2.f*p + pjm1) + k2*((pjp1 -p)*(pjp1-p)*(pjp1-p) - (p-pjm1)*(p-pjm1)*(p-pjm1)));
+
+    //update the arrays with our newly computed values
+    pos[i].y = newp.y;
+    posn1[i] = p;
+    posn1[i].w = 1.;
+
+}
