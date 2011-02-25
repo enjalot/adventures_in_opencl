@@ -88,9 +88,9 @@ class Wave:
 
     def execute(self):
         for i in xrange(self.subints):
-            #self.cl.execute(1, self.c, self.dt, self.dx, -150, 150)
+            self.cl.execute(1, self.c, self.dt, self.dx, -150, 150)
             #self.cl.execute(2, self.beta, self.dt, self.dx, -12., 12.)
-            self.cl.execute(3, self.gamma, self.dt, self.dx, -1., 1.)
+            #self.cl.execute(3, self.gamma, self.dt, self.dx, -1., 1.)
 
 
     def render(self):
