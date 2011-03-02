@@ -13,7 +13,7 @@ acpu = numpy.zeros((100, 1), dtype=numpy.int32)
 for i in xrange(0,100):
     if i % 5 == 0:
         acpu[i] = 1
-#a = pyopencl.Buffer(ctx, pyopencl.mem_flags.READ_ONLY | pyopencl.mem_flags.COPY_HOST_PTR, hostbuf=acpu)
+
 a = Array(queue, (100,1), numpy.int32)
 a.set(acpu)
 queue.finish()
