@@ -1,13 +1,29 @@
-import pyopencl as cl
-print dir(cl)
-a = cl.array.arange(400, dtype=numpy.float32)
-b = cl.array.arange(400, dtype=numpy.float32)
+import pyopencl
+from pyopencl.array import arange, Array
+from pyopencl.reduction import ReductionKernel
+import numpy
 
-krnl = ReductionKernel(ctx, numpy.float32, neutral="0",
-                reduce_expr="a+b", map_expr="x[i]*y[i]",
-                        arguments="__global float *x, __global float *y")
+ctx = pyopencl.create_some_context()
+queue = pyopencl.CommandQueue(ctx)
 
-my_dot_prod = krnl(a, b).get()
-print my_dot_prod
+#print dir(cl)
+#a = arange(queue, 400, dtype=numpy.float32)
+#b = arange(queue, 400, dtype=numpy.float32)
+acpu = numpy.zeros((100, 1), dtype=numpy.int32)
+for i in xrange(0,100):
+    if i % 5 == 0:
+        acpu[i] = 1
+#a = pyopencl.Buffer(ctx, pyopencl.mem_flags.READ_ONLY | pyopencl.mem_flags.COPY_HOST_PTR, hostbuf=acpu)
+a = Array(queue, (100,1), numpy.int32)
+a.set(acpu)
+queue.finish()
+
+krnl = ReductionKernel(ctx, numpy.int32, neutral="0",
+                reduce_expr="a+b", map_expr="x[i]", #*y[i]",
+                        arguments="__global int *x")#, __global in *y")
+
+my_sum = krnl(a).get()
+queue.finish()
+print my_sum
 
 
