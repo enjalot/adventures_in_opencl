@@ -79,6 +79,7 @@ __kernel void wave(__global float4* pos, __global float4* color, __global float4
     posn1[i].w = 1.;
     //vel[i] = v;
 
+    color[i].x = sin(pos[i].y);
     //you can manipulate the color based on properties of the system
     //here we adjust the alpha
     //color[i].w = life;

@@ -58,9 +58,9 @@ class Wave:
             pos[i,2] = z
             pos[i,3] = 1.
 
-            col[i,0] = 1.
-            col[i,1] = 0.
-            col[i,2] = 0.
+            col[i,0] = cos(2.*numpy.pi * x)
+            col[i,1] = sin(2.*numpy.pi * y)
+            col[i,2] = 1.
             col[i,3] = 1.
 
             life = random.random()
@@ -88,9 +88,9 @@ class Wave:
 
     def execute(self):
         for i in xrange(self.subints):
-            self.cl.execute(1, self.c, self.dt, self.dx, -150, 150)
+            #self.cl.execute(1, self.c, self.dt, self.dx, -150, 150)
             #self.cl.execute(2, self.beta, self.dt, self.dx, -12., 12.)
-            #self.cl.execute(3, self.gamma, self.dt, self.dx, -1., 1.)
+            self.cl.execute(3, self.gamma, self.dt, self.dx, -1., 1.)
 
 
     def render(self):
