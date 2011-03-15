@@ -26,6 +26,8 @@ class CLKernel(object):
         self.gl_objects = []
         #TODO get these from kwargs
         self.kernelargs = None
+        self.global_size = (0, )
+        self.local_size = None
         self.PreExecute = None
         self.PostExecute = None
                 
@@ -44,7 +46,7 @@ class CLKernel(object):
         if self.gl_objects:
             cl.enqueue_acquire_gl_objects(self.queue, self.gl_objects)
             
-        self.program.part2(self.queue, self.pos.shape, None, 
+        self.program.part2(self.queue, self.global_size, self.local_size,
                            *(self.kernelargs))
 
         if self.gl_objects:                            

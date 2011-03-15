@@ -13,16 +13,16 @@ __kernel void part2(__global float4* pos, __global float4* color, __global float
     //decrease the life by the time step (this value could be adjusted to lengthen or shorten particle life
     life -= dt;
     //if the life is 0 or less we reset the particle's values back to the original values and set life to 1
-    if(life <= 0)
+    if(life <= 0.f)
     {
         p = pos_gen[i];
         v = vel_gen[i];
-        life = 1.0;    
+        life = 1.0f;    
     }
 
     //we use a first order euler method to integrate the velocity and position (i'll expand on this in another tutorial)
     //update the velocity to be affected by "gravity" in the z direction
-    v.z -= 9.8*dt;
+    v.z -= 9.8f*dt;
     //update the position with the new velocity
     p.x += v.x*dt;
     p.y += v.y*dt;

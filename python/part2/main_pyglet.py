@@ -14,9 +14,10 @@ from vector import Vec
 
 #OpenCL code
 import part2
+import initialize
 
 #number of particles
-num = 20000
+num = 200000
 #time step for integration
 dt = .01
 
@@ -73,28 +74,7 @@ class Part2Main(window.Window):
         glRotatef(self.rotate.y, 0, 1, 0) #we switched around the axis so make this rotate_z
         glTranslatef(self.translate.x, self.translate.y, self.translate.z)
 
-
-        glEnable(GL_POINT_SMOOTH)
-        glPointSize(2)
-        glEnable(GL_BLEND)
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-
-        #setup the VBOs
-        self.cle.col_vbo.bind()
-        glColorPointer(4, GL_FLOAT, 0, self.cle.col_vbo)
-
-        self.cle.pos_vbo.bind()
-        glVertexPointer(4, GL_FLOAT, 0, self.cle.pos_vbo)
-
-        glEnableClientState(GL_VERTEX_ARRAY)
-        glEnableClientState(GL_COLOR_ARRAY)
-        #draw the VBOs
-        glDrawArrays(GL_POINTS, 0, self.cle.num)
-
-        glDisableClientState(GL_COLOR_ARRAY)
-        glDisableClientState(GL_VERTEX_ARRAY)
-
-        glDisable(GL_BLEND)
+        self.cle.render()
         
         #draw the x, y and z axis as lines
         glutil.draw_axes()
@@ -123,8 +103,12 @@ class Part2Main(window.Window):
 
 if __name__ == "__main__":
 
+    #set up initial conditions
+    (pos_vbo, col_vbo, vel) = initialize.fountain(num)
     #create our OpenCL instance
     example = part2.Part2CL(num, dt, "part2.cl")
+    example.loadData(pos_vbo, col_vbo, vel)
+
 
     #setup opengl context with double buffering in pyglet
     from pyglet import gl

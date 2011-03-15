@@ -12,11 +12,13 @@ from vector import Vec
 
 #OpenCL code
 import part2
+#functions for initial values of particles
+import initialize
 
 #number of particles
-num = 20000
+num = 200000
 #time step for integration
-dt = .01
+dt = .001
 
 class window(object):
     def __init__(self, *args, **kwargs):
@@ -51,7 +53,7 @@ class window(object):
         self.glinit()
 
         #set up initial conditions
-        (pos_vbo, col_vbo, vel) = init_data()
+        (pos_vbo, col_vbo, vel) = initialize.fountain(num)
         #create our OpenCL instance
         self.cle = part2.Part2CL(num, dt, "part2.cl")
         self.cle.loadData(pos_vbo, col_vbo, vel)
@@ -66,6 +68,8 @@ class window(object):
         gluPerspective(60., self.width / float(self.height), .1, 1000.)
         glMatrixMode(GL_MODELVIEW)
 
+
+    ###GL CALLBACKS
     def timer(self, t):
         glutTimerFunc(t, self.timer, t)
         glutPostRedisplay()
@@ -95,19 +99,15 @@ class window(object):
             self.translate.z -= dy * .01 
         self.mouse_old.x = x
         self.mouse_old.y = y
-
-    def on_mouse_drag(self, x, y, dx, dy, buttons, modifiers):
-        if buttons & window.mouse.LEFT:
-            self.rotate.x += dy * .2
-            self.rotate.y += dx * .2
-        elif buttons & window.mouse.RIGHT:
-            self.translate.z -= dy * .01 
+    ###END GL CALLBACKS
 
 
     def draw(self):
-        
+        """Render the particles"""        
         #update or particle positions by calling the OpenCL kernel
-        self.cle.execute()
+        for i in xrange(0, 10): #10 updates per frame
+            self.cle.execute() 
+        glFlush()
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
         glMatrixMode(GL_MODELVIEW)
@@ -127,48 +127,7 @@ class window(object):
 
         glutSwapBuffers()
 
-def init_data():
-    """Initialize position, color and velocity arrays we also make Vertex
-    Buffer Objects for the position and color arrays"""
 
-    from math import sqrt, sin, cos
-    import numpy
-    pos = numpy.ndarray((num, 4), dtype=numpy.float32)
-    col = numpy.ndarray((num, 4), dtype=numpy.float32)
-    vel = numpy.ndarray((num, 4), dtype=numpy.float32)
-
-    import random
-    random.seed()
-    for i in xrange(0, num):
-        rad = random.uniform(.2, .5);
-        x = rad*sin(2*3.14 * i/num)
-        z = 0.
-        y = rad*cos(2*3.14 * i/num)
-
-        pos[i,0] = x 
-        pos[i,1] = y 
-        pos[i,2] = z 
-        pos[i,3] = 1.
-
-        col[i,0] = 0.
-        col[i,1] = 1.
-        col[i,2] = 0.
-        col[i,3] = 1.
-
-        life = random.random()
-        vel[i,0] = x*2.
-        vel[i,1] = y*2.
-        vel[i,2] = 3.
-        vel[i,3] = life
-
-        from OpenGL.arrays import vbo 
-        pos_vbo = vbo.VBO(data=pos, usage=GL_DYNAMIC_DRAW, target=GL_ARRAY_BUFFER)
-        pos_vbo.bind()
-        col_vbo = vbo.VBO(data=col, usage=GL_DYNAMIC_DRAW, target=GL_ARRAY_BUFFER)
-        col_vbo.bind()
-
-    return (pos_vbo, col_vbo, vel)
- 
 
 
 if __name__ == "__main__":

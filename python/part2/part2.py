@@ -47,6 +47,9 @@ class Part2CL(clutil.CLKernel):
                            self.vel_gen_cl, 
                            self.dt)
 
+        self.global_size = (self.num,)
+        print self.global_size
+
 
     def render(self):
         
