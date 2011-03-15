@@ -1,179 +1,143 @@
-#Port from Adventures in OpenCL Part2 to PyOpenCL
-# http://enja.org/2010/08/27/adventures-in-opencl-part-2-particles-with-opengl/
-#Author: Ian Johnson
-#referenced: 
-# http://documen.tician.de/pyopencl/
-# http://www.geometrian.com/Tutorials.php
+#basic pyglet setup learned from here:
+#http://www.learningpython.com/2007/11/10/creating-a-game-with-pyglet-and-python/
+
+from pyglet import window
+from pyglet import clock
+from pyglet import font
 
 from OpenGL.GL import *
 from OpenGL.GLU import *
 
-import pygame
-from pygame.locals import *
-
-#utility functions for drawing OpenGL stuff
-import glutil as gl
-#wrapper for numpy array that gives us float4 like behavior
+#helper modules
+import glutil
 from vector import Vec
 
-import os, sys
-from math import sqrt, sin, cos
-
-pygame.init()
-pygame.display.set_caption("PyOpenCL with PyOpenGL interop")
-screen = (800, 600)
-surface = pygame.display.set_mode(screen, OPENGL|DOUBLEBUF)
-
-#should just have an interaction class for controlling the window
-#global mouse_old, rotate, translate, mouse_down
-mouse_down = False
-mouse_old = Vec([0.,0.])
-rotate = Vec([0., 0., 0.])
-translate = Vec([0., 0., 0.])
-initrans = Vec([0, 0, -2])
-
-gl.init(screen)
-
-num = 20000
-#setup initial values of arrays
-import numpy
-pos = numpy.ndarray((num, 4), dtype=numpy.float32)
-col = numpy.ndarray((num, 4), dtype=numpy.float32)
-vel = numpy.ndarray((num, 4), dtype=numpy.float32)
-
-import random
-random.seed()
-for i in xrange(0, num):
-    rad = random.uniform(.2, .5);
-    x = rad*sin(2*3.14 * i/num)
-    z = 0.
-    y = rad*cos(2*3.14 * i/num)
-
-    pos[i,0] = x
-    pos[i,1] = y
-    pos[i,2] = z
-    pos[i,3] = 1.
-
-    col[i,0] = 1.
-    col[i,1] = 0.
-    col[i,2] = 0.
-    col[i,3] = 1.
-
-    life = random.random()
-    vel[i,0] = x*2.
-    vel[i,1] = y*2.
-    vel[i,2] = 3.
-    vel[i,3] = life
-
-#print pos
-#print col
-#print vel
-
-#for some reason trying to do this inside CL.loadData gives me errors on mac
-from OpenGL.arrays import vbo
-pos_vbo = vbo.VBO(data=pos, usage=GL_DYNAMIC_DRAW, target=GL_ARRAY_BUFFER)
-pos_vbo.bind()
-col_vbo = vbo.VBO(data=col, usage=GL_DYNAMIC_DRAW, target=GL_ARRAY_BUFFER)
-col_vbo.bind()
- 
-
+#OpenCL code
 import part2
-example = part2.CL()
-example.loadProgram("part2.cl")
-example.loadData(pos_vbo, col_vbo, vel)
-#print example.pos_vbo.data
+
+#number of particles
+num = 20000
+#time step for integration
+dt = .01
+
+class Part2Main(window.Window):
+    def __init__(self, cle, *args, **kwargs):
+        window.Window.__init__(self, *args, **kwargs)
+
+        #glutil.init(self.width, self.height)
+        self.cle = cle
+        self.num = num
+
+        #mouse handling for transforming scene
+        self.rotate = Vec([0., 0., 0.])
+        self.translate = Vec([0., 0., 0.])
+        self.initrans = Vec([0., 0., -2.])
 
 
-def get_input():
-    global mouse_down, mouse_old, translate, rotate
-    key = pygame.key.get_pressed()
-    #print key
-    trans = 2.0
+    def on_mouse_drag(self, x, y, dx, dy, buttons, modifiers):
+        if buttons & window.mouse.LEFT:
+            self.rotate.x += dy * .2
+            self.rotate.y += dx * .2
+        elif buttons & window.mouse.RIGHT:
+            self.translate.z -= dy * .01 
 
-    for event in pygame.event.get():
-        if event.type == QUIT or key[K_ESCAPE] or key[K_q]:
-            print "quit!"
-            pygame.quit(); sys.exit()
-
-        elif event.type == MOUSEBUTTONDOWN:
-            mouse_down = True
-            mouse_old = Vec([event.pos[0]*1., event.pos[1]*1.])
-
-        elif event.type == MOUSEMOTION:
-            if(mouse_down):
-                m = Vec([event.pos[0]*1., event.pos[1]*1.])
-                dx = m.x - mouse_old.x
-                dy = m.y - mouse_old.y
-                button1, button2, button3 = pygame.mouse.get_pressed()
-                if button1:
-                    rotate.x += dy * .2
-                    rotate.y += dx * .2
-                elif button3:
-                    translate .z -= dy * .01 
-
-                mouse_old = m
-                #print "rotate", rotate, "translate", translate
-
-        elif event.type == MOUSEBUTTONUP:
-            mouse_down = False
-        elif key[K_w]:
-            translate.z += .1*trans   #y is z and z is y
-        elif key[K_s]:
-            translate.z -= .1*trans
-        elif key[K_a]:
-            translate.x += .1*trans
-        elif key[K_d]:
-            translate.x -= .1*trans
-
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
-    glMatrixMode(GL_MODELVIEW)
-    glLoadIdentity()
-    glTranslatef(initrans.x, initrans.y, initrans.z)
-    glRotatef(rotate.x, 1, 0, 0)
-    glRotatef(rotate.y, 0, 1, 0) #we switched around the axis so make this rotate_z
-    glTranslatef(translate.x, translate.y, translate.z)
-
-
-def draw():
-    glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT)
-
-    example.execute()
-
-    #glColor3f(1,0,0)
-    glEnable(GL_POINT_SMOOTH)
-    glPointSize(5)
-
-    glEnable(GL_BLEND)
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-
-    example.col_vbo.bind()
-    glColorPointer(4, GL_FLOAT, 0, example.col_vbo)
-
-    example.pos_vbo.bind()
-    glVertexPointer(4, GL_FLOAT, 0, example.pos_vbo)
-
-    glEnableClientState(GL_VERTEX_ARRAY)
-    glEnableClientState(GL_COLOR_ARRAY)
-    glDrawArrays(GL_POINTS, 0, num)
-
-    glDisableClientState(GL_COLOR_ARRAY)
-    glDisableClientState(GL_VERTEX_ARRAY)
-
-    glDisable(GL_BLEND)
+    def set3d(self):
+        glViewport(0, 0, self.width, self.height)
+        glMatrixMode(GL_PROJECTION)
+        glPushMatrix()
+        glLoadIdentity()
+        gluPerspective(60., self.width / float(self.height), .1, 1000.)
+        glMatrixMode(GL_MODELVIEW)
     
-    gl.draw_axes()
-
-    pygame.display.flip()
-
-
-def main():
-
-    clock = pygame.time.Clock()
-
-    while True:
-        clock.tick(60)
-        get_input()
-        draw()
+    def unset3d(self):
+        glMatrixMode(GL_PROJECTION)
+        glPopMatrix()
 
 
-if __name__ == '__main__': main()
+    def update(self):
+        #execute our OpenCL kernel
+        self.cle.execute()
+
+
+    def draw(self):
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
+        
+        self.set3d()
+        glMatrixMode(GL_MODELVIEW)
+        glPushMatrix()
+        glLoadIdentity()
+
+        #handle mouse transformations
+        glTranslatef(self.initrans.x, self.initrans.y, self.initrans.z)
+        glRotatef(-self.rotate.x, 1, 0, 0)
+        glRotatef(self.rotate.y, 0, 1, 0) #we switched around the axis so make this rotate_z
+        glTranslatef(self.translate.x, self.translate.y, self.translate.z)
+
+
+        glEnable(GL_POINT_SMOOTH)
+        glPointSize(2)
+        glEnable(GL_BLEND)
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+
+        #setup the VBOs
+        self.cle.col_vbo.bind()
+        glColorPointer(4, GL_FLOAT, 0, self.cle.col_vbo)
+
+        self.cle.pos_vbo.bind()
+        glVertexPointer(4, GL_FLOAT, 0, self.cle.pos_vbo)
+
+        glEnableClientState(GL_VERTEX_ARRAY)
+        glEnableClientState(GL_COLOR_ARRAY)
+        #draw the VBOs
+        glDrawArrays(GL_POINTS, 0, self.cle.num)
+
+        glDisableClientState(GL_COLOR_ARRAY)
+        glDisableClientState(GL_VERTEX_ARRAY)
+
+        glDisable(GL_BLEND)
+        
+        #draw the x, y and z axis as lines
+        glutil.draw_axes()
+
+        glPopMatrix()
+        self.unset3d()
+
+
+    def main_loop(self):
+        ft = font.load('Arial', 28)
+        fps_text = font.Text(ft, y=10)
+
+        while not self.has_exit:
+            self.dispatch_events()
+
+            self.update()
+            self.draw()
+
+            clock.tick()
+            fps_text.text = "fps: %d" % clock.get_fps()
+            fps_text.draw()
+
+            self.flip()
+
+
+
+if __name__ == "__main__":
+
+    #create our OpenCL instance
+    example = part2.Part2CL(num, dt, "part2.cl")
+
+    #setup opengl context with double buffering in pyglet
+    from pyglet import gl
+    config = gl.Config()
+    config.double_buffer=True
+    config.depth_size = 16
+
+    #create a window object and run our program!
+    p2 = Part2Main(example, resizable=True, config=config)
+
+    #glutil.lights()
+
+    p2.main_loop()
+
+
+

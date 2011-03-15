@@ -1,35 +1,60 @@
 from OpenGL.GL import GL_ARRAY_BUFFER, GL_DYNAMIC_DRAW, glFlush
+from OpenGL.arrays import vbo
 
-import pyopencl as cl
-
-import sys
+import clutil
 import numpy
 
-class CL:
-    def __init__(self):
-        plats = cl.get_platforms()
-        from pyopencl.tools import get_gl_sharing_context_properties
-        import sys 
-        if sys.platform == "darwin":
-            self.ctx = cl.Context(properties=get_gl_sharing_context_properties(),
-                             devices=[])
-        else:
-            self.ctx = cl.Context(properties=[
-                (cl.context_properties.PLATFORM, plats[0])]
-                + get_gl_sharing_context_properties())
-        self.queue = cl.CommandQueue(self.ctx)
+class Part2CL(clutil.CLKernel):
+    def __init__(self, num, dt, *args, **kwargs):
+        #setup initial values of arrays
+        clutil.CLKernel.__init__(self, *args, **kwargs)
+        self.num = num
+        self.dt = numpy.float32(dt)
+        pos = numpy.ndarray((num, 4), dtype=numpy.float32)
+        col = numpy.ndarray((num, 4), dtype=numpy.float32)
+        vel = numpy.ndarray((num, 4), dtype=numpy.float32)
 
-    
+        from math import sqrt, sin, cos
+        import random
+        random.seed()
+        for i in xrange(0, num):
+            rad = random.uniform(.2, .5);
+            x = rad*sin(2*3.14 * i/num)
+            z = 0.
+            y = rad*cos(2*3.14 * i/num)
 
-    def loadProgram(self, filename):
-        #read in the OpenCL source file as a string
-        f = open(filename, 'r')
-        fstr = "".join(f.readlines())
-        print fstr
-        #create the program
-        self.program = cl.Program(self.ctx, fstr).build()
+            pos[i,0] = x
+            pos[i,1] = y
+            pos[i,2] = z
+            pos[i,3] = 1.
+
+            col[i,0] = 1.
+            col[i,1] = 0.
+            col[i,2] = 0.
+            col[i,3] = 1.
+
+            life = random.random()
+            vel[i,0] = x*2.
+            vel[i,1] = y*2.
+            vel[i,2] = 3.
+            vel[i,3] = life
+
+        #print pos
+        #print col
+        #print vel
+
+        #for some reason trying to do this inside CL.loadData gives me errors on mac
+        pos_vbo = vbo.VBO(data=pos, usage=GL_DYNAMIC_DRAW, target=GL_ARRAY_BUFFER)
+        pos_vbo.bind()
+        col_vbo = vbo.VBO(data=col, usage=GL_DYNAMIC_DRAW, target=GL_ARRAY_BUFFER)
+        col_vbo.bind()
+        
+        self.loadData(pos_vbo, col_vbo, vel)
+         
+
 
     def loadData(self, pos_vbo, col_vbo, vel):
+        import pyopencl as cl
         mf = cl.mem_flags
         self.pos_vbo = pos_vbo
         self.col_vbo = col_vbo
@@ -50,21 +75,16 @@ class CL:
         self.vel_gen_cl = cl.Buffer(self.ctx, mf.READ_ONLY | mf.COPY_HOST_PTR, hostbuf=self.vel)
         self.queue.finish()
 
-
-    def execute(self):
-        #important to make a scalar arguement into a numpy scalar
-        dt = numpy.float32(.01)
-        cl.enqueue_acquire_gl_objects(self.queue, [self.pos_cl, self.col_cl])
-        #2nd argument is global work size, 3rd is local work size, rest are kernel args
-        self.program.part2(self.queue, self.pos.shape, None, 
-                            self.pos_cl, 
-                            self.col_cl, 
-                            self.vel_cl, 
-                            self.pos_gen_cl, 
-                            self.vel_gen_cl, 
-                            dt)
-        cl.enqueue_release_gl_objects(self.queue, [self.pos_cl, self.col_cl])
-        self.queue.finish()
-        glFlush()
+        # set up the list of GL objects to share with opencl
+        self.gl_objects = [self.pos_cl, self.col_cl]
         
+        # set up the Kernel argument list
+        self.kernelargs = (self.pos_cl, 
+                           self.col_cl, 
+                           self.vel_cl, 
+                           self.pos_gen_cl, 
+                           self.vel_gen_cl, 
+                           self.dt)
+
+
 

@@ -4,19 +4,19 @@ from OpenGL.GLU import *
 from vector import Vec
 
 
-def init((width, height)):
+def init(width, height):
 
     #glEnable(GL_DEPTH_TEST)
     glEnable(GL_NORMALIZE)
     glShadeModel(GL_SMOOTH)
 
 
+    glViewport(0, 0, width, height)
     glMatrixMode(GL_PROJECTION)
     glLoadIdentity()
-    gluPerspective(90.0, width/float(height), 1, 100.0)
+    gluPerspective(60.0, width/float(height), .1, 8192)
     #glEnable(GL_DEPTH_TEST)
     glMatrixMode(GL_MODELVIEW)
-
 
 
 
