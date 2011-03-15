@@ -1,5 +1,7 @@
-from OpenGL.GL import GL_ARRAY_BUFFER, GL_DYNAMIC_DRAW, glFlush
-from OpenGL.arrays import vbo
+#from OpenGL.GL import GL_ARRAY_BUFFER, GL_DYNAMIC_DRAW, glFlush
+from OpenGL.GL import *
+from OpenGL.GLU import *
+
 
 import clutil
 import numpy
@@ -10,47 +12,6 @@ class Part2CL(clutil.CLKernel):
         clutil.CLKernel.__init__(self, *args, **kwargs)
         self.num = num
         self.dt = numpy.float32(dt)
-        pos = numpy.ndarray((num, 4), dtype=numpy.float32)
-        col = numpy.ndarray((num, 4), dtype=numpy.float32)
-        vel = numpy.ndarray((num, 4), dtype=numpy.float32)
-
-        from math import sqrt, sin, cos
-        import random
-        random.seed()
-        for i in xrange(0, num):
-            rad = random.uniform(.2, .5);
-            x = rad*sin(2*3.14 * i/num)
-            z = 0.
-            y = rad*cos(2*3.14 * i/num)
-
-            pos[i,0] = x
-            pos[i,1] = y
-            pos[i,2] = z
-            pos[i,3] = 1.
-
-            col[i,0] = 1.
-            col[i,1] = 0.
-            col[i,2] = 0.
-            col[i,3] = 1.
-
-            life = random.random()
-            vel[i,0] = x*2.
-            vel[i,1] = y*2.
-            vel[i,2] = 3.
-            vel[i,3] = life
-
-        #print pos
-        #print col
-        #print vel
-
-        #for some reason trying to do this inside CL.loadData gives me errors on mac
-        pos_vbo = vbo.VBO(data=pos, usage=GL_DYNAMIC_DRAW, target=GL_ARRAY_BUFFER)
-        pos_vbo.bind()
-        col_vbo = vbo.VBO(data=col, usage=GL_DYNAMIC_DRAW, target=GL_ARRAY_BUFFER)
-        col_vbo.bind()
-        
-        self.loadData(pos_vbo, col_vbo, vel)
-         
 
 
     def loadData(self, pos_vbo, col_vbo, vel):
@@ -87,4 +48,28 @@ class Part2CL(clutil.CLKernel):
                            self.dt)
 
 
+    def render(self):
+        
+        glEnable(GL_POINT_SMOOTH)
+        glPointSize(2)
+        glEnable(GL_BLEND)
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+
+        #setup the VBOs
+        self.col_vbo.bind()
+        glColorPointer(4, GL_FLOAT, 0, self.col_vbo)
+
+        self.pos_vbo.bind()
+        glVertexPointer(4, GL_FLOAT, 0, self.pos_vbo)
+
+        glEnableClientState(GL_VERTEX_ARRAY)
+        glEnableClientState(GL_COLOR_ARRAY)
+        #draw the VBOs
+        glDrawArrays(GL_POINTS, 0, self.num)
+
+        glDisableClientState(GL_COLOR_ARRAY)
+        glDisableClientState(GL_VERTEX_ARRAY)
+
+        glDisable(GL_BLEND)
+     
 

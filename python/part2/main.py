@@ -1,12 +1,10 @@
-#basic pyglet setup learned from here:
-#http://www.learningpython.com/2007/11/10/creating-a-game-with-pyglet-and-python/
-
-from pyglet import window
-from pyglet import clock
-from pyglet import font
+#basic glut setup learned from here:
+#http://www.java2s.com/Open-Source/Python/Game-2D-3D/PyOpenGL/PyOpenGL-Demo-3.0.1b1/PyOpenGL-Demo/NeHe/lesson2.py.htm
 
 from OpenGL.GL import *
 from OpenGL.GLU import *
+from OpenGL.GLUT import *
+import sys
 
 #helper modules
 import glutil
@@ -20,19 +18,83 @@ num = 20000
 #time step for integration
 dt = .01
 
-class Part2Main(window.Window):
-    def __init__(self, cle, *args, **kwargs):
-        window.Window.__init__(self, *args, **kwargs)
-
-        #glutil.init(self.width, self.height)
-        self.cle = cle
-        self.num = num
-
+class window(object):
+    def __init__(self, *args, **kwargs):
         #mouse handling for transforming scene
+        self.mouse_down = False
+        self.mouse_old = Vec([0., 0.])
         self.rotate = Vec([0., 0., 0.])
         self.translate = Vec([0., 0., 0.])
         self.initrans = Vec([0., 0., -2.])
 
+        self.width = 640
+        self.height = 480
+
+        glutInit(sys.argv)
+        glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_DEPTH)
+        glutInitWindowSize(self.width, self.height)
+        glutInitWindowPosition(0, 0)
+        self.win = glutCreateWindow("Part 2: Python")
+
+        #gets called by GLUT every frame
+        glutDisplayFunc(self.draw)
+
+        #handle user input
+        glutKeyboardFunc(self.on_key)
+        glutMouseFunc(self.on_click)
+        glutMotionFunc(self.on_mouse_motion)
+        
+        #this will call draw every 30 ms
+        glutTimerFunc(30, self.timer, 30)
+
+        #setup OpenGL scene
+        self.glinit()
+
+        #set up initial conditions
+        (pos_vbo, col_vbo, vel) = init_data()
+        #create our OpenCL instance
+        self.cle = part2.Part2CL(num, dt, "part2.cl")
+        self.cle.loadData(pos_vbo, col_vbo, vel)
+
+        glutMainLoop()
+        
+
+    def glinit(self):
+        glViewport(0, 0, self.width, self.height)
+        glMatrixMode(GL_PROJECTION)
+        glLoadIdentity()
+        gluPerspective(60., self.width / float(self.height), .1, 1000.)
+        glMatrixMode(GL_MODELVIEW)
+
+    def timer(self, t):
+        glutTimerFunc(t, self.timer, t)
+        glutPostRedisplay()
+
+    def on_key(self, *args):
+        ESCAPE = '\033'
+        if args[0] == ESCAPE or args[0] == 'q':
+            sys.exit()
+
+    def on_click(self, button, state, x, y):
+        if state == GLUT_DOWN:
+            self.mouse_down = True
+            self.button = button
+        else:
+            self.mouse_down = False
+        self.mouse_old.x = x
+        self.mouse_old.y = y
+
+    
+    def on_mouse_motion(self, x, y):
+        dx = x - self.mouse_old.x
+        dy = y - self.mouse_old.y
+        if self.mouse_down and self.button == 0: #left button
+            self.rotate.x += dy * .2
+            self.rotate.y += dx * .2
+        elif self.mouse_down and self.button == 1: #right button
+            self.translate.z -= dy * .01 
+        self.mouse_old.x = x
+        self.mouse_old.y = y
 
     def on_mouse_drag(self, x, y, dx, dy, buttons, modifiers):
         if buttons & window.mouse.LEFT:
@@ -41,103 +103,76 @@ class Part2Main(window.Window):
         elif buttons & window.mouse.RIGHT:
             self.translate.z -= dy * .01 
 
-    def set3d(self):
-        glViewport(0, 0, self.width, self.height)
-        glMatrixMode(GL_PROJECTION)
-        glPushMatrix()
-        glLoadIdentity()
-        gluPerspective(60., self.width / float(self.height), .1, 1000.)
-        glMatrixMode(GL_MODELVIEW)
-    
-    def unset3d(self):
-        glMatrixMode(GL_PROJECTION)
-        glPopMatrix()
-
-
-    def update(self):
-        #execute our OpenCL kernel
-        self.cle.execute()
-
 
     def draw(self):
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
         
-        self.set3d()
+        #update or particle positions by calling the OpenCL kernel
+        self.cle.execute()
+
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
         glMatrixMode(GL_MODELVIEW)
-        glPushMatrix()
         glLoadIdentity()
 
         #handle mouse transformations
         glTranslatef(self.initrans.x, self.initrans.y, self.initrans.z)
-        glRotatef(-self.rotate.x, 1, 0, 0)
+        glRotatef(self.rotate.x, 1, 0, 0)
         glRotatef(self.rotate.y, 0, 1, 0) #we switched around the axis so make this rotate_z
         glTranslatef(self.translate.x, self.translate.y, self.translate.z)
-
-
-        glEnable(GL_POINT_SMOOTH)
-        glPointSize(2)
-        glEnable(GL_BLEND)
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-
-        #setup the VBOs
-        self.cle.col_vbo.bind()
-        glColorPointer(4, GL_FLOAT, 0, self.cle.col_vbo)
-
-        self.cle.pos_vbo.bind()
-        glVertexPointer(4, GL_FLOAT, 0, self.cle.pos_vbo)
-
-        glEnableClientState(GL_VERTEX_ARRAY)
-        glEnableClientState(GL_COLOR_ARRAY)
-        #draw the VBOs
-        glDrawArrays(GL_POINTS, 0, self.cle.num)
-
-        glDisableClientState(GL_COLOR_ARRAY)
-        glDisableClientState(GL_VERTEX_ARRAY)
-
-        glDisable(GL_BLEND)
         
+        #render the particles
+        self.cle.render()
+
         #draw the x, y and z axis as lines
         glutil.draw_axes()
 
-        glPopMatrix()
-        self.unset3d()
+        glutSwapBuffers()
 
+def init_data():
+    """Initialize position, color and velocity arrays we also make Vertex
+    Buffer Objects for the position and color arrays"""
 
-    def main_loop(self):
-        ft = font.load('Arial', 28)
-        fps_text = font.Text(ft, y=10)
+    from math import sqrt, sin, cos
+    import numpy
+    pos = numpy.ndarray((num, 4), dtype=numpy.float32)
+    col = numpy.ndarray((num, 4), dtype=numpy.float32)
+    vel = numpy.ndarray((num, 4), dtype=numpy.float32)
 
-        while not self.has_exit:
-            self.dispatch_events()
+    import random
+    random.seed()
+    for i in xrange(0, num):
+        rad = random.uniform(.2, .5);
+        x = rad*sin(2*3.14 * i/num)
+        z = 0.
+        y = rad*cos(2*3.14 * i/num)
 
-            self.update()
-            self.draw()
+        pos[i,0] = x 
+        pos[i,1] = y 
+        pos[i,2] = z 
+        pos[i,3] = 1.
 
-            clock.tick()
-            fps_text.text = "fps: %d" % clock.get_fps()
-            fps_text.draw()
+        col[i,0] = 0.
+        col[i,1] = 1.
+        col[i,2] = 0.
+        col[i,3] = 1.
 
-            self.flip()
+        life = random.random()
+        vel[i,0] = x*2.
+        vel[i,1] = y*2.
+        vel[i,2] = 3.
+        vel[i,3] = life
 
+        from OpenGL.arrays import vbo 
+        pos_vbo = vbo.VBO(data=pos, usage=GL_DYNAMIC_DRAW, target=GL_ARRAY_BUFFER)
+        pos_vbo.bind()
+        col_vbo = vbo.VBO(data=col, usage=GL_DYNAMIC_DRAW, target=GL_ARRAY_BUFFER)
+        col_vbo.bind()
+
+    return (pos_vbo, col_vbo, vel)
+ 
 
 
 if __name__ == "__main__":
-
-    #create our OpenCL instance
-    example = part2.Part2CL(num, dt, "part2.cl")
-
-    #setup opengl context with double buffering in pyglet
-    from pyglet import gl
-    config = gl.Config()
-    config.double_buffer=True
-    config.depth_size = 16
-
-    #create a window object and run our program!
-    p2 = Part2Main(example, resizable=True, config=config)
-
-    #glutil.lights()
-
-    p2.main_loop()
+    p2 = window()
 
 
 
