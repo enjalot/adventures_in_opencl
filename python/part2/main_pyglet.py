@@ -106,7 +106,7 @@ if __name__ == "__main__":
     #set up initial conditions
     (pos_vbo, col_vbo, vel) = initialize.fountain(num)
     #create our OpenCL instance
-    example = part2.Part2CL(num, dt, "part2.cl")
+    example = part2.Part2(num, dt, "part2.cl")
     example.loadData(pos_vbo, col_vbo, vel)
 
 

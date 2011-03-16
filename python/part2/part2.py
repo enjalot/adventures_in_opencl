@@ -3,15 +3,19 @@ from OpenGL.GL import *
 from OpenGL.GLU import *
 
 
-import clutil
+import pyopencl as cl
+import sys
+
 import numpy
 
-class Part2CL(clutil.CLKernel):
+class Part2(object):
     def __init__(self, num, dt, *args, **kwargs):
-        #setup initial values of arrays
-        clutil.CLKernel.__init__(self, *args, **kwargs)
+        self.clinit()
+        self.loadProgram("part2.cl");
+
         self.num = num
         self.dt = numpy.float32(dt)
+
 
 
     def loadData(self, pos_vbo, col_vbo, vel):
@@ -39,16 +43,48 @@ class Part2CL(clutil.CLKernel):
         # set up the list of GL objects to share with opencl
         self.gl_objects = [self.pos_cl, self.col_cl]
         
-        # set up the Kernel argument list
-        self.kernelargs = (self.pos_cl, 
-                           self.col_cl, 
-                           self.vel_cl, 
-                           self.pos_gen_cl, 
-                           self.vel_gen_cl, 
-                           self.dt)
 
-        self.global_size = (self.num,)
-        print self.global_size
+
+    def execute(self):
+        cl.enqueue_acquire_gl_objects(self.queue, self.gl_objects)
+
+        global_size = (self.num,)
+        local_size = None
+
+        kernelargs = (self.pos_cl, 
+                      self.col_cl, 
+                      self.vel_cl, 
+                      self.pos_gen_cl, 
+                      self.vel_gen_cl, 
+                      self.dt)
+
+        self.program.part2(self.queue, global_size, local_size, *(kernelargs))
+
+        cl.enqueue_release_gl_objects(self.queue, self.gl_objects)
+        self.queue.finish()
+ 
+
+    def clinit(self):
+        plats = cl.get_platforms()
+        from pyopencl.tools import get_gl_sharing_context_properties
+        import sys 
+        if sys.platform == "darwin":
+            self.ctx = cl.Context(properties=get_gl_sharing_context_properties(),
+                             devices=[])
+        else:
+            self.ctx = cl.Context(properties=[
+                (cl.context_properties.PLATFORM, plats[0])]
+                + get_gl_sharing_context_properties(), devices=None)
+                
+        self.queue = cl.CommandQueue(self.ctx)
+
+    def loadProgram(self, filename):
+        #read in the OpenCL source file as a string
+        f = open(filename, 'r')
+        fstr = "".join(f.readlines())
+        #print fstr
+        #create the program
+        self.program = cl.Program(self.ctx, fstr).build()
 
 
     def render(self):

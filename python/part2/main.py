@@ -16,7 +16,7 @@ import part2
 import initialize
 
 #number of particles
-num = 200000
+num = 20000
 #time step for integration
 dt = .001
 
@@ -55,7 +55,7 @@ class window(object):
         #set up initial conditions
         (pos_vbo, col_vbo, vel) = initialize.fountain(num)
         #create our OpenCL instance
-        self.cle = part2.Part2CL(num, dt, "part2.cl")
+        self.cle = part2.Part2(num, dt, "part2.cl")
         self.cle.loadData(pos_vbo, col_vbo, vel)
 
         glutMainLoop()
