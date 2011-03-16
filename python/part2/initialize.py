@@ -76,7 +76,7 @@ def fountain(num):
     #pos, col, vel = fountain_loopy(num)
     pos, col, vel = fountain_np(num)
     
-    print "Timings:", timings
+    print timings
 
     #create the Vertex Buffer Objects
     from OpenGL.arrays import vbo 

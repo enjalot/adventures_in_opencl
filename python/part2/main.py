@@ -78,6 +78,8 @@ class window(object):
         ESCAPE = '\033'
         if args[0] == ESCAPE or args[0] == 'q':
             sys.exit()
+        elif args[0] == 't':
+            print self.cle.timings
 
     def on_click(self, button, state, x, y):
         if state == GLUT_DOWN:

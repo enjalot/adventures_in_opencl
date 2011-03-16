@@ -7,7 +7,9 @@ import pyopencl as cl
 import sys
 
 import numpy
+import timing
 
+timings = timing.Timing()
 class Part2(object):
     def __init__(self, num, dt, *args, **kwargs):
         self.clinit()
@@ -15,6 +17,8 @@ class Part2(object):
 
         self.num = num
         self.dt = numpy.float32(dt)
+
+        self.timings = timings
 
 
 
@@ -45,6 +49,7 @@ class Part2(object):
         
 
 
+    @timings
     def execute(self, sub_intervals):
         cl.enqueue_acquire_gl_objects(self.queue, self.gl_objects)
 
