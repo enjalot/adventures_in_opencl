@@ -105,8 +105,7 @@ class window(object):
     def draw(self):
         """Render the particles"""        
         #update or particle positions by calling the OpenCL kernel
-        for i in xrange(0, 10): #10 updates per frame
-            self.cle.execute() 
+        self.cle.execute(10) 
         glFlush()
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)

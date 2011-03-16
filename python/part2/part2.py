@@ -45,7 +45,7 @@ class Part2(object):
         
 
 
-    def execute(self):
+    def execute(self, sub_intervals):
         cl.enqueue_acquire_gl_objects(self.queue, self.gl_objects)
 
         global_size = (self.num,)
@@ -58,7 +58,8 @@ class Part2(object):
                       self.vel_gen_cl, 
                       self.dt)
 
-        self.program.part2(self.queue, global_size, local_size, *(kernelargs))
+        for i in xrange(0, sub_intervals):
+            self.program.part2(self.queue, global_size, local_size, *(kernelargs))
 
         cl.enqueue_release_gl_objects(self.queue, self.gl_objects)
         self.queue.finish()
