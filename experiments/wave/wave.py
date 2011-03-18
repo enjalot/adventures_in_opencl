@@ -3,97 +3,121 @@ from OpenGL.GL import *
 from OpenGL.arrays import vbo
 
 import numpy
-from math import sqrt, sin, cos
-import random
+import pyopencl as cl
 
-from clu import CL
-       
+from initialize import timings       
 
 class Wave:
-    def __init__(self, dt, dx, subintervals):
-
-        self.subints = subintervals
-        #set up initial conditions
-        #need to setup VBOs before starting CL context
-        self.initial_conditions(dt, dx)
-
-        self.cl = CL()
-        self.cl.loadProgram("wave.cl")
-
-
-        self.cl.loadData(self.pos_vbo, self.col_vbo, self.vel)
-
-    def initial_conditions(self, dt, dx):
+    def __init__(self, dt, dx, ntracers, params):
+        self.clinit()
+        self.loadProgram("wave.cl")
+        
         self.dt = dt
         self.dx = dx
-        
-        self.c = 10.
-        #unstable for quadratic
-        self.beta = .016568
-        #unstable for cubic
-        #self.gamma = .509
-        self.gamma = .0509
-
-        #num = 1./self.dx + 2
-        print self.dx
-        #xs = numpy.arange(-4., 4. + self.dx, self.dx)
-        xs = numpy.arange(0., 1. + self.dx, self.dx)
-        num = len(xs)
-        print num
-        #setup initial values of arrays
-        pos = numpy.ndarray((num, 4), dtype=numpy.float32)
-        col = numpy.ndarray((num, 4), dtype=numpy.float32)
-        vel = numpy.ndarray((num, 4), dtype=numpy.float32)
-
-        random.seed()
-        for i in xrange(0, num):
-            #rad = random.uniform(.2, .5);
-            #x = i*self.dx
-            x = xs[i]
-            z = 0.
-            y = sin(2.*numpy.pi * x)
-
-            pos[i,0] = x
-            pos[i,1] = y
-            pos[i,2] = z
-            pos[i,3] = 1.
-
-            col[i,0] = cos(2.*numpy.pi * x)
-            col[i,1] = sin(2.*numpy.pi * y)
-            col[i,2] = 1.
-            col[i,3] = 1.
-
-            life = random.random()
-            vel[i,0] = x    #x*2.
-            vel[i,1] = y    #y*2.
-            vel[i,2] = z    #3.
-            vel[i,3] = life
-
-        #print pos
-        #print col
-        #print vel
-
-        self.pos = pos
-        self.vel = vel
-        self.col = col
-
-        self.pos_vbo = vbo.VBO(data=pos, usage=GL_DYNAMIC_DRAW, target=GL_ARRAY_BUFFER)
-        self.pos_vbo.bind()
-        self.col_vbo = vbo.VBO(data=col, usage=GL_DYNAMIC_DRAW, target=GL_ARRAY_BUFFER)
-        self.col_vbo.bind()
-        
-        self.num = len(self.pos)
+        self.num = params[0]
+        self.ntracers = ntracers 
+        self.params = params[1:]
          
+    
+    @timings
+    def execute(self, subintervals):
+
+        dt = numpy.float32(self.dt)
+        dx = numpy.float32(self.dx)
+        ntracers = numpy.int32(self.ntracers)
+        num = numpy.int32(self.num)
+        choice = numpy.int32(self.params[0])#choice)
+        k = numpy.float32(self.params[1])#k)
+        ymin = numpy.float32(self.params[2])#ymin)
+        ymax = numpy.float32(self.params[3])#ymax)
+        """
+        print "in execute, num", self.num
+        print "tracers", self.ntracers
+        print "choice", choice
+        print "k", k
+        print "ymin", ymin
+        print "ymax", ymax
+        print "dt", dt
+        print "dx", dx
+        """
+                
+        cl.enqueue_acquire_gl_objects(self.queue, self.gl_objects)
+
+        global_size = (self.num,)
+        local_size = None
+
+                
+        kernelargs = (self.pos_cl, 
+                      self.col_cl, 
+                      self.pos_gen_cl, 
+                      ntracers,
+                      choice,
+                      num,
+                      k,
+                      ymin,
+                      ymax,
+                      dt,
+                      dx
+                      )
+
+               
+        for i in xrange(0, subintervals):
+            self.program.wave(self.queue, global_size, local_size, *(kernelargs))
+
+        cl.enqueue_release_gl_objects(self.queue, self.gl_objects)
+        self.queue.finish()
+ 
 
 
-    def execute(self):
-        for i in xrange(self.subints):
-            #self.cl.execute(1, self.c, self.dt, self.dx, -150, 150)
-            #self.cl.execute(2, self.beta, self.dt, self.dx, -12., 12.)
-            self.cl.execute(3, self.gamma, self.dt, self.dx, -1., 1.)
+    def loadData(self, pos_vbo, col_vbo):
+        import pyopencl as cl
+        mf = cl.mem_flags
+        self.pos_vbo = pos_vbo
+        self.col_vbo = col_vbo
+
+        self.pos = pos_vbo.data
+        self.col = col_vbo.data
+
+        #Setup vertex buffer objects and share them with OpenCL as GLBuffers
+        self.pos_vbo.bind()
+        self.pos_cl = cl.GLBuffer(self.ctx, mf.READ_WRITE, int(self.pos_vbo.buffers[0]))
+        self.col_vbo.bind()
+        self.col_cl = cl.GLBuffer(self.ctx, mf.READ_WRITE, int(self.col_vbo.buffers[0]))
+
+        #pure OpenCL arrays
+        self.pos_gen_cl = cl.Buffer(self.ctx, mf.READ_ONLY | mf.COPY_HOST_PTR, hostbuf=self.pos)
+        self.queue.finish()
+
+        # set up the list of GL objects to share with opencl
+        self.gl_objects = [self.pos_cl, self.col_cl]
+ 
+ 
+    def clinit(self):
+        plats = cl.get_platforms()
+        from pyopencl.tools import get_gl_sharing_context_properties
+        import sys 
+        if sys.platform == "darwin":
+            self.ctx = cl.Context(properties=get_gl_sharing_context_properties(),
+                             devices=[])
+        else:
+            self.ctx = cl.Context(properties=[
+                (cl.context_properties.PLATFORM, plats[0])]
+                + get_gl_sharing_context_properties(), devices=None)
+                
+        self.queue = cl.CommandQueue(self.ctx)
+
+    def loadProgram(self, filename):
+        #read in the OpenCL source file as a string
+        f = open(filename, 'r')
+        fstr = "".join(f.readlines())
+        #print fstr
+        #create the program
+        self.program = cl.Program(self.ctx, fstr).build()
+
 
 
     def render(self):
+
 
         #glColor3f(1,0,0)
         glEnable(GL_POINT_SMOOTH)
@@ -101,19 +125,30 @@ class Wave:
 
         glEnable(GL_BLEND)
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+        glEnable(GL_DEPTH_TEST)
 
-        self.cl.col_vbo.bind()
-        glColorPointer(4, GL_FLOAT, 0, self.cl.col_vbo)
+        """
+        glColor3f(1., 0, 0)
+        glBegin(GL_POINTS)
+        for p in self.pos_vbo.data:
+            glVertex3f(p[0], p[1], p[2])
 
-        self.cl.pos_vbo.bind()
-        glVertexPointer(4, GL_FLOAT, 0, self.cl.pos_vbo)
+        glEnd()
+        """
+
+        self.col_vbo.bind()
+        glColorPointer(4, GL_FLOAT, 0, self.col_vbo)
+
+        self.pos_vbo.bind()
+        glVertexPointer(4, GL_FLOAT, 0, self.pos_vbo)
 
         glEnableClientState(GL_VERTEX_ARRAY)
         glEnableClientState(GL_COLOR_ARRAY)
-        glDrawArrays(GL_POINTS, 0, self.num)
+        glDrawArrays(GL_POINTS, 0, self.num*self.ntracers)
 
         glDisableClientState(GL_COLOR_ARRAY)
         glDisableClientState(GL_VERTEX_ARRAY)
 
         glDisable(GL_BLEND)
+        glDisable(GL_DEPTH_TEST)
 

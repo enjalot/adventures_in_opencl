@@ -14,7 +14,7 @@ def init((width, height)):
 
     gl.glMatrixMode(gl.GL_PROJECTION)
     gl.glLoadIdentity()
-    gluPerspective(90.0, width/float(height), 1, 100.0)
+    gluPerspective(60.0, width/float(height), 1, 1000.0)
     #glEnable(GL_DEPTH_TEST)
     gl.glMatrixMode(gl.GL_MODELVIEW)
 
