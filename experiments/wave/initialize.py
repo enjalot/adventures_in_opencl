@@ -24,7 +24,7 @@ def wave_np(dt, dx, ntracers):
         z = 0. - it * dx * 2
 
         pos[t:tn,0] = xs 
-        pos[t:tn,1] = numpy.sin(xs * 2.001 * numpy.pi) 
+        pos[t:tn,1] = numpy.sin(xs * 4.001 * numpy.pi) 
         pos[t:tn,2] = z
         pos[t:tn,3] = 1.
 
@@ -52,14 +52,16 @@ def wave(dt, dx, ntracers):
 
     elif choice == 2:      #quadratic 
         #unstable for quadratic
-        beta = .016568
+        #beta = .016568
+        beta = .0016568
         param = beta
         ymin = -12.
         ymax = 12.
 
     elif choice == 3:      #cubic
         #gamma = .509
-        gamma = .0509
+        #gamma = .0509
+        gamma = .00509
         param = gamma
         ymin = -1.
         ymax = 1.

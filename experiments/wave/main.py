@@ -17,11 +17,11 @@ import initialize
 
 #number of particles
 #num = 20000
-subintervals = 2
+subintervals = 20
 ntracers = 100
 #dt = .0002
 #dx = .001
-dt = .002*.2
+dt = .002*.02
 dx = .024*.2
 
 class window(object):

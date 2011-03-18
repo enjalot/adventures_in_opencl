@@ -59,6 +59,10 @@ __kernel void wave(__global float4* pos,
     //pos[i].y = i / 43.f;
     //pos[i].w = 1.f;
 #if 1
+    //This calculates a different wave for each set
+    //instead we could simply do copying in this way (instead of calculating
+    //if we want to calculate history we just need to start their initial conditions
+    //staggered
     for(int j = 0; j < ntracers; j++)
     //for(int j = 0; j < 7; j++)
     {
@@ -69,7 +73,7 @@ __kernel void wave(__global float4* pos,
         imin = imind + j * num;
         imax = imaxd + j * num;
 
-        dt -= dt/ntracers;
+        dt += dt/ntracers;
 
         int im1 = i-1;
         int ip1 = i+1;
