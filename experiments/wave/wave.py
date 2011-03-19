@@ -10,7 +10,9 @@ from initialize import timings
 class Wave:
     def __init__(self, dt, dx, ntracers, params):
         self.clinit()
+        self.prgs = {}  #store our programs
         self.loadProgram("wave.cl")
+        self.loadProgram("update.cl")
         
         self.dt = dt
         self.dx = dx
@@ -47,9 +49,10 @@ class Wave:
         local_size = None
 
                 
-        kernelargs = (self.pos_cl, 
+        wave_kernelargs = (self.pos_cl, 
                       self.col_cl, 
-                      self.pos_gen_cl, 
+                      self.pos_n1_cl, 
+                      self.pos_n2_cl, 
                       ntracers,
                       choice,
                       num,
@@ -59,10 +62,21 @@ class Wave:
                       dt,
                       dx
                       )
+        
+        dz = numpy.float32(-dx/subintervals)
+        update_kernelargs = (self.pos_cl,
+                       self.col_cl,
+                       self.pos_n1_cl,
+                       self.pos_n2_cl,
+                       ntracers,
+                       num,
+                       dt,
+                       dz)
 
                
         for i in xrange(0, subintervals):
-            self.program.wave(self.queue, global_size, local_size, *(kernelargs))
+            self.prgs["wave"].wave(self.queue, global_size, local_size, *(wave_kernelargs))
+            self.prgs["update"].update(self.queue, global_size, local_size, *(update_kernelargs))
 
         cl.enqueue_release_gl_objects(self.queue, self.gl_objects)
         self.queue.finish()
@@ -81,11 +95,13 @@ class Wave:
         #Setup vertex buffer objects and share them with OpenCL as GLBuffers
         self.pos_vbo.bind()
         self.pos_cl = cl.GLBuffer(self.ctx, mf.READ_WRITE, int(self.pos_vbo.buffers[0]))
+
         self.col_vbo.bind()
         self.col_cl = cl.GLBuffer(self.ctx, mf.READ_WRITE, int(self.col_vbo.buffers[0]))
 
         #pure OpenCL arrays
-        self.pos_gen_cl = cl.Buffer(self.ctx, mf.READ_ONLY | mf.COPY_HOST_PTR, hostbuf=self.pos)
+        self.pos_n1_cl = cl.Buffer(self.ctx, mf.READ_ONLY | mf.COPY_HOST_PTR, hostbuf=self.pos)
+        self.pos_n2_cl = cl.Buffer(self.ctx, mf.READ_ONLY | mf.COPY_HOST_PTR, hostbuf=self.pos)
         self.queue.finish()
 
         # set up the list of GL objects to share with opencl
@@ -112,7 +128,8 @@ class Wave:
         fstr = "".join(f.readlines())
         #print fstr
         #create the program
-        self.program = cl.Program(self.ctx, fstr).build()
+        prg_name = filename.split(".")[0]   #e.g. wave from wave.cl
+        self.prgs[prg_name] = cl.Program(self.ctx, fstr).build()
 
 
 
@@ -123,8 +140,8 @@ class Wave:
         glEnable(GL_POINT_SMOOTH)
         glPointSize(5)
 
-        glEnable(GL_BLEND)
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+        #glEnable(GL_BLEND)
+        #glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
         glEnable(GL_DEPTH_TEST)
 
         """
@@ -144,11 +161,11 @@ class Wave:
 
         glEnableClientState(GL_VERTEX_ARRAY)
         glEnableClientState(GL_COLOR_ARRAY)
-        glDrawArrays(GL_POINTS, 0, self.num*self.ntracers)
+        glDrawArrays(GL_POINTS, 0, self.num*(self.ntracers+1))
 
         glDisableClientState(GL_COLOR_ARRAY)
         glDisableClientState(GL_VERTEX_ARRAY)
 
-        glDisable(GL_BLEND)
+        #glDisable(GL_BLEND)
         glDisable(GL_DEPTH_TEST)
 

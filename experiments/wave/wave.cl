@@ -36,6 +36,7 @@ float calc_wave(float4 pjm1, float4 p, float4 pjp1, float4 pn1, int choice, floa
 __kernel void wave(__global float4* pos, 
                    __global float4* color, 
                    __global float4* posn1, 
+                   __global float4* posn2, 
                    int ntracers, 
                    int choice,
                    int num,
@@ -63,32 +64,53 @@ __kernel void wave(__global float4* pos,
     //instead we could simply do copying in this way (instead of calculating
     //if we want to calculate history we just need to start their initial conditions
     //staggered
-    for(int j = 0; j < ntracers; j++)
+    //for(int j = 0; j < ntracers; j++)
     //for(int j = 0; j < 7; j++)
     {
 
+        int j = 0;
         //i = ind + num*j;
         //i += num;
         i = ind + j * num;
         imin = imind + j * num;
         imax = imaxd + j * num;
 
-        dt += dt/ntracers;
+        //dt += dt/ntracers;
 
         int im1 = i-1;
         int ip1 = i+1;
-        im1 = im1 < imin ? imax-1 : im1;
-        ip1 = ip1 > imax ? imin : ip1;
+        //periodic
+        //im1 = im1 < imin ? imax : im1;
+        //ip1 = ip1 > imax ? imin : ip1;
+
+        //We use a double buffer technique. our equations depend on neighbors
+        //in the same time step as well as the value at the previous time step.
+        //so we must store the value for the new time step in a separate
+        //array so we don't contend for memory
+
+        float4 pjm1 = posn1[im1];     //p(i-1)
+        float4 p = posn1[i];          //p(i)
+        float4 pjp1 = posn1[ip1];     //p(i+1)
+        float4 pn1 = posn2[i];      //last time step 
+/*
         float4 pjm1 = pos[im1];     //p(i-1)
         float4 p = pos[i];          //p(i)
         float4 pjp1 = pos[ip1];     //p(i+1)
         float4 pn1 = posn1[i];      //last time step 
+*/
+        //fixed boundary conditions
+        float4 zero = (float4)(0.f,0.f,0.f,0.f);
+        pjm1 = im1 < imin ? zero : pjm1;
+        pjp1 = ip1 > imax ? zero : pjp1;
+
         //update the arrays with our newly computed values
         //barrier(CLK_GLOBAL_MEM_FENCE);
         float ymaxm = calc_wave(pjm1, p, pjp1, pn1, choice, k, ymin, ymax, dt, dx);
         pos[i].y = ymaxm;
-        posn1[i] = p;
-        posn1[i].w = 1.;
+        //posn1[i] = p;
+        //posn2[i].xyz = p.xyz;   //make sure we don't overwrite the life which is stored in posn2.w
+        pos[i].w = 1.;
+        //posn2[i].w = 1.;
         //barrier(CLK_GLOBAL_MEM_FENCE);
         ymaxm = ymaxm < 0. ? -ymaxm : ymaxm;
         color[i].x = 1 - ymaxm;

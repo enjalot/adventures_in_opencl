@@ -18,11 +18,11 @@ import initialize
 #number of particles
 #num = 20000
 subintervals = 20
-ntracers = 100
+ntracers = 200
 #dt = .0002
 #dx = .001
-dt = .002*.02
-dx = .024*.2
+dt = .002*.01
+dx = .024*.1
 
 class window(object):
     def __init__(self, *args, **kwargs):
@@ -69,6 +69,9 @@ class window(object):
 
     def draw(self):
         """Render the particles"""        
+        #TODO: 
+        # * set up Ortho2D viewing and mouse controls
+        # * find better color mapping for height
         
         #update or particle positions by calling the OpenCL kernel
         self.cle.execute(subintervals) 

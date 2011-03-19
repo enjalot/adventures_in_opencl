@@ -11,25 +11,32 @@ def wave_np(dt, dx, ntracers):
     xs = numpy.arange(0., 1. + dx, dx)
     num = len(xs)
 
-    pos = numpy.ndarray((num*ntracers, 4), dtype=numpy.float32)
-    col = numpy.ndarray((num*ntracers, 4), dtype=numpy.float32)
-    vel = numpy.ndarray((num*ntracers, 4), dtype=numpy.float32)
+    #ntracers + 1 because original array is not considered a tracer
+    pos = numpy.ndarray((num*(ntracers+1), 4), dtype=numpy.float32)
+    col = numpy.ndarray((num*(ntracers+1), 4), dtype=numpy.float32)
+    vel = numpy.ndarray((num*(ntracers+1), 4), dtype=numpy.float32)
         
-    for it in xrange(0, ntracers):
+    for it in xrange(0, ntracers+1):
         #print "z", z
         t = it*num
         tn = t + num
         #print it, t, tn
 
-        z = 0. - it * dx * 2
+        z = 0. - it * dx
 
         pos[t:tn,0] = xs 
         pos[t:tn,1] = numpy.sin(xs * 4.001 * numpy.pi) 
         pos[t:tn,2] = z
-        pos[t:tn,3] = 1.
+        pos[t:tn,3] = ntracers*dt - it*dt   #for calculating the life of a tracer particle
 
-        col[t:tn,0] = 0.
-        col[t:tn,1] = 1.
+
+        #ymaxm = ymaxm < 0. ? -ymaxm : ymaxm;
+        #color[i].x = 1 - ymaxm;
+        #color[i].y = ymaxm;
+
+        
+        col[t:tn,0] = 1 - numpy.abs(pos[t:tn,1])
+        col[t:tn,1] = numpy.abs(pos[t:tn,1])
         col[t:tn,2] = 0.
         col[t:tn,3] = 1.
 
@@ -42,7 +49,7 @@ def wave(dt, dx, ntracers):
     """Initialize position, color and velocity arrays we also make Vertex
     Buffer Objects for the position and color arrays"""
 
-    choice = 1
+    choice = 3
     if choice == 1:        #linear
         #c = 10.
         c = 1.
@@ -60,8 +67,8 @@ def wave(dt, dx, ntracers):
 
     elif choice == 3:      #cubic
         #gamma = .509
-        #gamma = .0509
-        gamma = .00509
+        gamma = .0509
+        #gamma = .00509
         param = gamma
         ymin = -1.
         ymax = 1.
