@@ -55,7 +55,7 @@ class window(object):
         #set up initial conditions
         (pos_vbo, col_vbo, vel) = initialize.fountain(num)
         #create our OpenCL instance
-        self.cle = part2.Part2(num, dt, "part2.cl")
+        self.cle = part2.Part2(num, dt)
         self.cle.loadData(pos_vbo, col_vbo, vel)
 
         glutMainLoop()
