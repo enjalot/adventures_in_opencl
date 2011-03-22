@@ -97,7 +97,7 @@ class window(object):
         if self.mouse_down and self.button == 0: #left button
             self.rotate.x += dy * .2
             self.rotate.y += dx * .2
-        elif self.mouse_down and self.button == 1: #right button
+        elif self.mouse_down and self.button == 2: #right button
             self.translate.z -= dy * .01 
         self.mouse_old.x = x
         self.mouse_old.y = y
