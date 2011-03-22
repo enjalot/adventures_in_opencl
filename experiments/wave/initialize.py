@@ -35,8 +35,8 @@ def wave_np(dt, dx, ntracers):
         #color[i].y = ymaxm;
 
         
-        col[t:tn,0] = 1 - numpy.abs(pos[t:tn,1])
-        col[t:tn,1] = numpy.abs(pos[t:tn,1])
+        col[t:tn,0] = -1. * pos[t:tn,1] + 1.
+        col[t:tn,1] = 1. * numpy.abs(pos[t:tn,1]) + 1.
         col[t:tn,2] = 0.
         col[t:tn,3] = 1.
 

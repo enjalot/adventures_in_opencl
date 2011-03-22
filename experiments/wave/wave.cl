@@ -112,9 +112,9 @@ __kernel void wave(__global float4* pos,
         pos[i].w = 1.;
         //posn2[i].w = 1.;
         //barrier(CLK_GLOBAL_MEM_FENCE);
-        ymaxm = ymaxm < 0. ? -ymaxm : ymaxm;
-        color[i].x = 1 - ymaxm;
-        color[i].y = ymaxm;
+        //ymaxm = ymaxm < 0. ? -ymaxm : ymaxm;
+        color[i].x = -1.f * ymaxm + 1.f;
+        color[i].y = 1.f * ymaxm + 1.f;
     }
 #endif
 
