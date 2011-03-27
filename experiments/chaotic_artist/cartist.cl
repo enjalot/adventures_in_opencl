@@ -7,6 +7,7 @@ typedef struct Params
     float beta;
     float A;
     float B;
+    float F;
     float PI;
 
 } Params;
@@ -16,7 +17,7 @@ float calc_alpha(float life, float oomph,  __constant struct Params* params)
 {
     float oml = 1.f/(params->maxlife - life);
     //float oml = 1.f/(life);
-    float alpha = oomph*oml + params->A * sin(8.0f*params->PI*life - params->beta) + params->B;
+    float alpha = oomph*oml + params->A * sin(params->F*params->PI*life - params->beta) + params->B;
     return alpha;
 }
 

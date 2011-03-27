@@ -32,7 +32,7 @@ class window(object):
         self.mouse_old = Vec([0., 0.])
         self.rotate = Vec([-85., 0., 80.])
         self.translate = Vec([0., 0., 0.])
-        self.initrans = Vec([0., -1., -10.])
+        self.initrans = Vec([0., -1., -8.])
 
         self.width = 640
         self.height = 480
@@ -65,8 +65,8 @@ class window(object):
         self.cle.loadData(pos_vbo, col_vbo, time, props)
 
         self.t = 0.
-        self.x = 0.
-        self.y = 0.
+        self.x = 1.
+        self.y = 1.
         self.z = 0.
         #newp = numpy.array([.25, .25, 0., 1.], dtype=numpy.float32)
         #print "newp", newp
@@ -78,8 +78,8 @@ class window(object):
         self.t += dt
         #self.x += y*dt + sin(self.t)*dt
         #self.y += x*dt + cos(self.t)*dt
-        a = .2
-        b = .4
+        a = .3
+        b = .2
         c = 18
         dx = -self.y - self.z
         dy = self.x + a * self.y
@@ -113,6 +113,7 @@ class window(object):
         glRotatef(self.rotate.z, 0, 0, 1) #we switched around the axis so make this rotate_z
         glTranslatef(self.translate.x, self.translate.y, self.translate.z)
         
+        glScalef(.1,.1,.1)
         #render the particles
         self.cle.render()
 

@@ -9,7 +9,7 @@ import pyopencl as cl
 from initialize import timings       
 
 class ChaoticArtist(object):
-    def __init__(self, ntracers, dt=.01, maxlife=1.0, dlife=.01, beta=.5, A=.1, B=.1):
+    def __init__(self, ntracers, dt=.01, maxlife=1.0, dlife=.01, beta=.5, A=.1, B=.1, F=36.):
         self.clinit()
         self.prgs = {}  #store our programs
         self.loadProgram("cartist.cl")
@@ -23,10 +23,11 @@ class ChaoticArtist(object):
         beta = np.float32(beta)
         A = np.float32(A)
         B = np.float32(B)
+        F = np.float32(F)
 
         #self.params = struct.pack('fffffff', self.dt, self.maxlife, self.dlife, beta, A, B, np.pi)
 
-        params = [self.dt, self.maxlife, self.dlife, beta, A, B, np.pi]
+        params = [self.dt, self.maxlife, self.dlife, beta, A, B, F, np.pi]
         self.params = np.array(params, dtype=np.float32)
         #print params
         #print self.params
