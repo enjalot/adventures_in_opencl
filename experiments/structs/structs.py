@@ -14,20 +14,19 @@ prg = cl.Program(ctx, """
     {
         float A;
         float B;
+        float x;  //padding
+        float xx; //padding
         int C;
-        float x;
     } Test;
 
     __kernel void sum(__global const float *a,
                       __global const float *b, 
                       __global float *c,
-                      //__constant int test
                       __constant struct Test* test
                       )
     {
       int gid = get_global_id(0);
       c[gid] = test->A * a[gid] + test->B * b[gid] + test->C;
-      //c[test] = 666.;
     }
     """).build()
 
@@ -36,13 +35,16 @@ def add(a, b):
     b_buf = cl.Buffer(ctx, mf.READ_ONLY | mf.COPY_HOST_PTR, hostbuf=b)
     dest_buf = cl.Buffer(ctx, mf.WRITE_ONLY, b.nbytes)
 
-    test1 = struct.pack('ffif', .5, 10., 4, 1.)
-    #test2 = struct.pack("i", 4)
-    print test1, len(test1)
+    test1 = struct.pack('ffffi', .5, 10., .1, .2, 3)
+    print test1, len(test1), struct.calcsize('ffff')
+
+    test_buf = cl.Buffer(ctx, mf.READ_ONLY, len(test1))
+    cl.enqueue_write_buffer(queue, test_buf, test1).wait()
     
     global_size = a.shape
     local_size = None
-    prg.sum(queue, global_size, local_size, a_buf, b_buf, dest_buf, test1)
+    prg.sum(queue, global_size, local_size, a_buf, b_buf, dest_buf, test_buf)
+    queue.finish()
 
     c = np.empty_like(a)
     cl.enqueue_read_buffer(queue, dest_buf, c).wait()
