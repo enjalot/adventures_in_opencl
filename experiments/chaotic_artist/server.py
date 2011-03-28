@@ -1,4 +1,5 @@
 import timing
+from multiprocessing import Process, Queue
 from main import window
 
 import BaseHTTPServer
@@ -16,35 +17,30 @@ class CAHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         s.wfile.write("got it")
         print s
         print dir(s)
+        print dir(s.server)
 
 
 def go(q):
-    q.put("ASDF")
-    p2 = window()
+    q.put("Going")
+    p2 = window(q)
 
 
-from multiprocessing import Process, Queue
-
-if __name__ == "__main__":
-    #p2 = window()
-    q = Queue()
-    p = Process(target=go, args=(q,))
-    p.start()
-    print q.get()
-    print "WOOT"
-
-
-"""
 
 if __name__ == "__main__":
 
     server_class = BaseHTTPServer.HTTPServer
     httpd = server_class((HOST_NAME, PORT_NUMBER), CAHandler)
+
+    q = Queue()
+    p = Process(target=go, args=(q,))
+    p.start()
+    print q.get()
+
     try:
         httpd.serve_forever()
     except KeyboardInterrupt:
         pass
+    p.join()
     httpd.server_close()
     print "server stopped"
 
-"""
