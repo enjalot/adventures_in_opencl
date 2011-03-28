@@ -17,16 +17,21 @@ import initialize
 import numpy
 from math import sin, cos
 
+from multiprocessing import Process, Queue
+
 ntracers = 50000
 dt = .01
 dlife = .00005
-x = 0.
-y = 0.
+x = 1.
+y = 1.
+z = 0.
+t = 0.
 
 sub_intervals = 10
 
 class window(object):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, queue, *args, **kwargs):
+        self.queue = queue #for communication from other threads
         #mouse handling for transforming scene
         self.mouse_down = False
         self.mouse_old = Vec([0., 0.])
@@ -54,6 +59,9 @@ class window(object):
         #this will call draw every 30 ms
         glutTimerFunc(30, self.timer, 30)
 
+        #this will poll for new events in the multiprocessing queue
+        glutIdleFunc(self.poll)
+
         #setup OpenGL scene
         self.glinit()
 
@@ -64,15 +72,24 @@ class window(object):
         self.cle = cartist.ChaoticArtist(ntracers, dt=dt, dlife=dlife)
         self.cle.loadData(pos_vbo, col_vbo, time, props)
 
-        self.t = 0.
-        self.x = 1.
-        self.y = 1.
-        self.z = 0.
+        self.t = t
+        self.x = x
+        self.y = y
+        self.z = z
         #newp = numpy.array([.25, .25, 0., 1.], dtype=numpy.float32)
         #print "newp", newp
         #self.cle.execute(newp, self.t) 
         glutMainLoop()
         
+
+    def poll(self):
+        try:
+            newp = self.queue.get_nowait()
+            #print "NEWP"
+            self.cle.execute(newp, 0)
+            #glutPostRedisplay()
+        except:
+            pass
 
     def update(self):
         self.t += dt
@@ -95,8 +112,9 @@ class window(object):
         #TODO: 
         # * set up Ortho2D viewing and mouse controls
         # * find better color mapping for height
-        for i in xrange(0, sub_intervals):
-            self.update()
+        
+        #for i in xrange(0, sub_intervals):
+        #    self.update()
         
         #update or particle positions by calling the OpenCL kernel
         #self.cle.execute(subintervals) 
@@ -166,10 +184,49 @@ class window(object):
     ###END GL CALLBACKS
 
 
+def go(q):
+    q.put("Going")
+    p2 = window(q)
+
+def update(x, y, z, t):
+        t += dt
+        #self.x += y*dt + sin(self.t)*dt
+        #self.y += x*dt + cos(self.t)*dt
+        a = .3
+        b = .2
+        c = 18
+        dx = -y - z
+        dy = x + a * y
+        dz = b + z * (x - c)
+        x += dx * dt
+        y += dy * dt
+        z += dz * dt
+        newp = numpy.array([x, y, z, 1.], dtype=numpy.float32)
+        return newp, x, y, z, t
 
 
 if __name__ == "__main__":
-    p2 = window()
+    
+    t = 0.
+    x = 1.
+    y = 1.
+    z = 0.
+    import time
 
+    #p2 = window()
+    q = Queue()
+    p = Process(target=go, args=(q,))
+    p.start()
+    print q.get()
+    #p.join()
+    
+    #here we tell our GLUT process to update
+    while(True):
+        newp, x,y,z,t = update(x, y, z, t)
+        q.put(newp)
+        time.sleep(.01)
+    
+    
+    print "Gone!"
 
 

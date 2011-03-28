@@ -1,4 +1,5 @@
 import timing
+from main import window
 
 import BaseHTTPServer
 
@@ -16,7 +17,27 @@ class CAHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         print s
         print dir(s)
 
+
+def go(q):
+    q.put("ASDF")
+    p2 = window()
+
+
+from multiprocessing import Process, Queue
+
 if __name__ == "__main__":
+    #p2 = window()
+    q = Queue()
+    p = Process(target=go, args=(q,))
+    p.start()
+    print q.get()
+    print "WOOT"
+
+
+"""
+
+if __name__ == "__main__":
+
     server_class = BaseHTTPServer.HTTPServer
     httpd = server_class((HOST_NAME, PORT_NUMBER), CAHandler)
     try:
@@ -25,3 +46,5 @@ if __name__ == "__main__":
         pass
     httpd.server_close()
     print "server stopped"
+
+"""
