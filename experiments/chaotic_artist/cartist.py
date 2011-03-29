@@ -32,14 +32,13 @@ class ChaoticArtist(object):
         #print params
         #print self.params
          
-        self.count = np.int32(0)
+        self.count = 0
     
     @timings
     def execute(self, newp, t):
-
         self.count += 1
         if self.count >= self.ntracers-1:
-            self.count = np.int32(0)
+            self.count = 0
        
         cl.enqueue_acquire_gl_objects(self.queue, self.gl_objects)
 
@@ -51,7 +50,7 @@ class ChaoticArtist(object):
                       self.col_cl, 
                       self.time_cl, 
                       self.props_cl, 
-                      self.count,
+                      np.int32(self.count),
                       np.float32(t),
                       newp,
                       self.params_cl

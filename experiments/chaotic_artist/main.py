@@ -19,7 +19,7 @@ from math import sin, cos
 
 from multiprocessing import Process, Queue
 
-ntracers = 50000
+ntracers = 30000
 dt = .01
 dlife = .00005
 x = 1.
@@ -204,7 +204,6 @@ def update(x, y, z, t):
         newp = numpy.array([x, y, z, 1.], dtype=numpy.float32)
         return newp, x, y, z, t
 
-
 if __name__ == "__main__":
     
     t = 0.
@@ -226,7 +225,9 @@ if __name__ == "__main__":
         q.put(newp)
         time.sleep(.01)
     
-    
     print "Gone!"
 
-
+"""
+if __name__ == "__main__":
+    p2 = window(None)
+"""

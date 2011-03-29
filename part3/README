@@ -1,0 +1,19 @@
+Adventures in OpenCL: Part 3
+http://enja.org
+
+Constant Memory Structs: Putting parameters 
+
+Build:
+make a build directory and build the tutorial
+mkdir build
+cd build
+cmake ..
+make
+
+execute the example program
+./part3.x
+
+
+NOTES:
+excellent explanation of alignment in structs:
+http://forums.amd.com/forum/messageview.cfm?catid=390&threadid=122209&forumid=9
