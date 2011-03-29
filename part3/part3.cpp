@@ -34,6 +34,7 @@ void CL::popCorn()
         b[i] = 2.0f;// * i;
     }
 
+    Params params;
     params.A = .5f;
     params.B = 10.0f;
     params.C = 3;

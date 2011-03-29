@@ -32,7 +32,6 @@ class CL {
         cl::Buffer cl_c;
         int num;    //the size of our arrays
  
-        Params params;
         cl::Buffer cl_params;
 
         //default constructor initializes OpenCL context and automatically chooses platform and device
