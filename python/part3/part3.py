@@ -21,15 +21,15 @@ def add(a, b):
     b_buf = cl.Buffer(ctx, mf.READ_ONLY | mf.COPY_HOST_PTR, hostbuf=b)
     dest_buf = cl.Buffer(ctx, mf.WRITE_ONLY, b.nbytes)
 
-    test1 = struct.pack('ffffi', .5, 10., 0., 0., 3)
-    print test1, len(test1), struct.calcsize('ffffi')
+    params = struct.pack('ffffi', .5, 10., 0., 0., 3)
+    print params, len(params), struct.calcsize('ffffi')
 
-    test_buf = cl.Buffer(ctx, mf.READ_ONLY, len(test1))
-    cl.enqueue_write_buffer(queue, test_buf, test1).wait()
+    params_buf = cl.Buffer(ctx, mf.READ_ONLY, len(params))
+    cl.enqueue_write_buffer(queue, params_buf, params).wait()
     
     global_size = a.shape
     local_size = None
-    prg.part3(queue, global_size, local_size, a_buf, b_buf, dest_buf, test_buf)
+    prg.part3(queue, global_size, local_size, a_buf, b_buf, dest_buf, params_buf)
     queue.finish()
 
     c = np.empty_like(a)
