@@ -1,7 +1,7 @@
 Adventures in OpenCL: Part 3
 http://enja.org
 
-Constant Memory Structs: Putting parameters 
+Constant Memory Structs: Passing parameters to a kernel as a __constant struct
 
 Build:
 make a build directory and build the tutorial
