@@ -22,7 +22,7 @@ def add(a, b):
     dest_buf = cl.Buffer(ctx, mf.WRITE_ONLY, b.nbytes)
 
     params = struct.pack('ffffi', .5, 10., 0., 0., 3)
-    print params, len(params), struct.calcsize('ffffi')
+    print len(params), struct.calcsize('ffffi')
 
     params_buf = cl.Buffer(ctx, mf.READ_ONLY, len(params))
     cl.enqueue_write_buffer(queue, params_buf, params).wait()
