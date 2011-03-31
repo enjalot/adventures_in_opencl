@@ -19,7 +19,7 @@ from math import sin, cos
 
 from multiprocessing import Process, Queue
 
-ntracers = 30000
+ntracers = 100000
 dt = .01
 dlife = .00005
 x = 1.
@@ -37,7 +37,7 @@ class window(object):
         self.mouse_old = Vec([0., 0.])
         self.rotate = Vec([-85., 0., 80.])
         self.translate = Vec([0., 0., 0.])
-        self.initrans = Vec([0., -1., -8.])
+        self.initrans = Vec([0., 0., -2.])
 
         self.width = 640
         self.height = 480
@@ -69,7 +69,7 @@ class window(object):
         (pos_vbo, col_vbo, time, props) = initialize.ca(ntracers)
         #create our OpenCL instance
         #self.cle = part2.Part2(num, dt, "part2.cl")
-        self.cle = cartist.ChaoticArtist(ntracers, dt=dt, dlife=dlife)
+        self.cle = cartist.ChaoticArtist(ntracers, dt=dt, dlife=dlife, A=.1, B=.3, F=220, oomph=.001)
         self.cle.loadData(pos_vbo, col_vbo, time, props)
 
         self.t = t
@@ -136,7 +136,7 @@ class window(object):
         self.cle.render()
 
         #draw the x, y and z axis as lines
-        glutil.draw_axes()
+        #glutil.draw_axes()
 
         glutSwapBuffers()
 
@@ -178,7 +178,7 @@ class window(object):
             self.rotate.x += dy * .2
             self.rotate.y += dx * .2
         elif self.mouse_down and self.button == 2: #right button
-            self.translate.z -= dy * .01 
+            self.translate.x -= dy * .01 
         self.mouse_old.x = x
         self.mouse_old.y = y
     ###END GL CALLBACKS
@@ -192,9 +192,9 @@ def update(x, y, z, t):
         t += dt
         #self.x += y*dt + sin(self.t)*dt
         #self.y += x*dt + cos(self.t)*dt
-        a = .3
-        b = .2
-        c = 18
+        a = .44
+        b = 2.
+        c = 4.
         dx = -y - z
         dy = x + a * y
         dz = b + z * (x - c)
@@ -209,7 +209,7 @@ if __name__ == "__main__":
     t = 0.
     x = 1.
     y = 1.
-    z = 0.
+    z = 1.
     import time
 
     #p2 = window()
@@ -223,7 +223,7 @@ if __name__ == "__main__":
     while(True):
         newp, x,y,z,t = update(x, y, z, t)
         q.put(newp)
-        time.sleep(.01)
+        time.sleep(.005)
     
     print "Gone!"
 
