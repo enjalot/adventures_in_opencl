@@ -14,6 +14,7 @@ from vector import Vec
 import cartist 
 #functions for initial values of particles
 import initialize
+from initialize import timings
 import numpy
 from math import sin, cos
 
@@ -83,6 +84,8 @@ class window(object):
         
 
     def poll(self):
+        #improve this to keep track of time, only play a note if its the right time
+        #sleep for the appropriate amount of time according to the note
         try:
             newp = self.queue.get_nowait()
             #print "NEWP"
@@ -90,6 +93,7 @@ class window(object):
             #glutPostRedisplay()
         except:
             pass
+        time.sleep(.0001) #this could be variable
 
     def update(self):
         self.t += dt
@@ -107,6 +111,7 @@ class window(object):
         newp = numpy.array([self.x, self.y, self.z, 1.], dtype=numpy.float32)
         self.cle.execute(newp, self.t)
 
+    @timings
     def draw(self):
         """Render the particles"""        
         #TODO: 
