@@ -4,7 +4,7 @@ typedef uint2 KeyValuePair;
 
 
 
-//#pragma OPENCL EXTENSION cl_khr_local_int32_base_atomics : enable
+#pragma OPENCL EXTENSION cl_khr_local_int32_base_atomics : enable
 
 
 // May want to factor BITS_PER_PASS out
@@ -354,10 +354,17 @@ void generateHistogram(
 	if(sortedData.w != sortedData.z)
 		histogram[sortedData.z] = get_local_id(0)*4;
 #else
+    /*
+     * changed by enjalot
 	atomic_inc( &(histogram[sortedData.x]) );
 	atomic_inc( &(histogram[sortedData.y]) );
 	atomic_inc( &(histogram[sortedData.z]) );
 	atomic_inc( &(histogram[sortedData.w]) );
+    */
+    atom_inc( &(histogram[sortedData.x]) );
+	atom_inc( &(histogram[sortedData.y]) );
+	atom_inc( &(histogram[sortedData.z]) );
+	atom_inc( &(histogram[sortedData.w]) );
 #endif
 
 	barrier(CLK_LOCAL_MEM_FENCE);
@@ -665,7 +672,10 @@ void ScanPropagateBlockSums(
 
 	// For entire block, add the sum to it
 
-	int endValue = min((get_group_id(0)+2)*(block_size), length);
+    //enjalot
+    uint left = (get_group_id(0)+2)*(block_size);
+    int endValue = min(left, length);
+//	int endValue = min((get_group_id(0)+2)*(block_size), length);
 	for(
 			int i = (get_group_id(0)+1)*block_size + get_local_id(0);
 			i < endValue;
@@ -792,7 +802,10 @@ void RadixSortGlobal(
     localAddress = localAddress*(unsigned)4;
     uint4 addValues = (uint4)(0,1,2,3);
     localAddress = localAddress + addValues;
-    uint4 globalAddress = get_group_id(0)*numLocalElements + localAddress;
+    //uint4 globalAddress = get_group_id(0)*numLocalElements + localAddress;
+    //enjalot
+    uint4 globalAddress = get_group_id(0);
+    globalAddress *= numLocalElements + localAddress;
 
     // uint8 - this is really 4 KeyValuePairs packed together
     // There is probably a cleaner way to represent this

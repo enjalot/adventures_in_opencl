@@ -9,13 +9,13 @@ queue = cl.CommandQueue(ctx)
 
 mf = cl.mem_flags
 
-f = open("part3.cl", 'r')
+f = open("radix.cl", 'r')
 fstr = "".join(f.readlines())
 #print fstr
 #create the program
 prg = cl.Program(ctx, fstr).build()
 
-
+"""
 def add(a, b):
     a_buf = cl.Buffer(ctx, mf.READ_ONLY | mf.COPY_HOST_PTR, hostbuf=a)
     b_buf = cl.Buffer(ctx, mf.READ_ONLY | mf.COPY_HOST_PTR, hostbuf=b)
@@ -35,12 +35,19 @@ def add(a, b):
     c = np.empty_like(a)
     cl.enqueue_read_buffer(queue, dest_buf, c).wait()
     return c
+"""
 
 if __name__ == "__main__":
-    x = np.ndarray((10, 1), dtype=np.float32)
-    y = np.ndarray((10, 1), dtype=np.float32)
-    x[:] = 1.
-    y[:] = 2.
 
-    z = add(x,y)
-    print z
+    n = 1000
+    hash = np.ndarray((n,1), dtype=np.int32)
+    
+    for i in xrange(0,n): 
+        hash[i] = n - i
+
+    print hash[0:10]
+
+    #z = radix(hash)
+    #print z[0:10]
+
+

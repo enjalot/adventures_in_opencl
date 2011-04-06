@@ -126,6 +126,7 @@ class ChaoticArtist(object):
 
         glEnable(GL_BLEND)
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+        #glBlendFunc(GL_SRC_ALPHA, GL_ONE)
         glDisable(GL_DEPTH_TEST)
 
         """
