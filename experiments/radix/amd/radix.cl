@@ -416,7 +416,6 @@ __kernel void RadixSortLocal(
 		__local unsigned *sorterSharedMemory
         )
 {
-
 	int numLocalElements = get_local_size(0)*ELEMENTS_PER_WORK_ITEM;
 
     uint4 plainLocalAddress = (uint4)(get_local_id(0), get_local_id(0), get_local_id(0), get_local_id(0));
