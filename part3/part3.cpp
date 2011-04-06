@@ -3,17 +3,15 @@
 #include "cll.h"
 #include "util.h"
 
-//Define the struct we will be sending to OpenCL as parameters
-//the attribute alligned makes it always have a size that is a 
-//multiple of 16 bytes
 typedef struct Params
 {
     float A;
     float B;
-    float x;  //padding
-    float xx; //padding
+    //float padding[2];
     int C;
-} Params __attribute__((aligned(16)));
+    //float D;
+    //int E;
+} Params;// __attribute__((aligned(16)));
 
 
 
@@ -50,6 +48,10 @@ void CL::popCorn()
     params.A = .5f;
     params.B = 10.0f;
     params.C = 3;
+    /*
+    params[i].D = .01;
+    params[i].E = 1;
+    */
 
     printf("Creating OpenCL arrays\n");
     size_t array_size = sizeof(float) * num;
