@@ -63,7 +63,8 @@ class Wave:
                       dx
                       )
         
-        dz = numpy.float32(-dx/subintervals)
+        #dz = numpy.float32(-dx/subintervals)
+        dz = numpy.float32(-.21/ntracers/subintervals)
         update_kernelargs = (self.pos_cl,
                        self.col_cl,
                        self.pos_n1_cl,
@@ -138,11 +139,14 @@ class Wave:
 
         #glColor3f(1,0,0)
         glEnable(GL_POINT_SMOOTH)
-        glPointSize(5)
+        glPointSize(10)
 
-        #glEnable(GL_BLEND)
+        glEnable(GL_BLEND)
+        glBlendFunc(GL_ONE, GL_ONE)
         #glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-        glEnable(GL_DEPTH_TEST)
+        #glEnable(GL_DEPTH_TEST)
+        glDisable(GL_DEPTH_TEST)
+        glDepthMask(GL_FALSE)
 
         """
         glColor3f(1., 0, 0)

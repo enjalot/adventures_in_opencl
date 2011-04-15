@@ -1,12 +1,13 @@
 from OpenGL.GL import *
 
 import numpy
+import scipy.signal
 
 import timing
 timings = timing.Timing()
 
 #@timings
-def wave_np(dt, dx, ntracers):
+def wave_np(type, dt, dx, ntracers):
 
     xs = numpy.arange(0., 1. + dx, dx)
     num = len(xs)
@@ -22,10 +23,18 @@ def wave_np(dt, dx, ntracers):
         tn = t + num
         #print it, t, tn
 
-        z = 0. - it * dx
+        z = 0.# - it * dx
 
         pos[t:tn,0] = xs 
-        pos[t:tn,1] = numpy.sin(xs * 4.001 * numpy.pi) 
+        if type == "sin":
+            pos[t:tn,1] = numpy.sin(xs * 4.001 * numpy.pi) 
+        elif type == "square":
+            pos[t:tn,1] = .75*scipy.signal.square(xs * 4.001 * numpy.pi) 
+        elif type == "sawtooth":
+            pos[t:tn,1] = .75*scipy.signal.sawtooth(xs * 8.001 * numpy.pi) 
+        elif type == "sweep_poly":
+            poly = numpy.poly1d([1,2,0,2,3])
+            pos[t:tn,1] = .75*scipy.signal.sweep_poly(xs, poly)
         pos[t:tn,2] = z
         pos[t:tn,3] = ntracers*dt - it*dt   #for calculating the life of a tracer particle
 
@@ -45,35 +54,40 @@ def wave_np(dt, dx, ntracers):
     return pos, col, num
     
 
-def wave(dt, dx, ntracers):
+def wave(choice, stable, type, dt, dx, ntracers):
     """Initialize position, color and velocity arrays we also make Vertex
     Buffer Objects for the position and color arrays"""
 
-    choice = 3
     if choice == 1:        #linear
-        #c = 10.
-        c = 1.
+        if not stable:
+            c = 1 #unstable
+        else:
+            c = 10. #stable
         param = c
         ymin = -150.
         ymax = 150.
 
     elif choice == 2:      #quadratic 
-        #unstable for quadratic
-        #beta = .016568
-        beta = .0016568
+        if not stable:
+            #unstable for quadratic
+            beta = .016568
+        else:
+            beta = .0016568     #stable
         param = beta
         ymin = -12.
         ymax = 12.
 
     elif choice == 3:      #cubic
-        #gamma = .509
-        gamma = .0509
-        #gamma = .00509
+        if not stable:
+            #gamma = .509
+            gamma = .0509  #unstable
+        else:
+            gamma = .00509  #stable
         param = gamma
         ymin = -1.
         ymax = 1.
 
-    pos, col, num = wave_np(dt, dx, ntracers)
+    pos, col, num = wave_np(type, dt, dx, ntracers)
     
     #print timings
 

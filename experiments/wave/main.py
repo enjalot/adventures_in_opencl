@@ -17,12 +17,20 @@ import initialize
 
 #number of particles
 #num = 20000
-subintervals = 20
-ntracers = 200
-#dt = .0002
-#dx = .001
+subintervals = 30
+ntracers = 150
+#dt = .0001
+#dx = .002
 dt = .002*.01
 dx = .024*.1
+
+choice = 2
+#stable = True
+stable = False
+#type = "square"
+type = "sin"
+#type = "sawtooth"
+#type = "sweep_poly"
 
 class window(object):
     def __init__(self, *args, **kwargs):
@@ -31,7 +39,19 @@ class window(object):
         self.mouse_old = Vec([0., 0.])
         self.rotate = Vec([0., 0., 0.])
         self.translate = Vec([0., 0., 0.])
-        self.initrans = Vec([0., 0., -2.])
+        #self.initrans = Vec([0., 0., -2.])
+        self.init_persp_trans = Vec([-.5, 0., -1.5])
+        self.init_ortho_trans = Vec([0., 0., 0.])
+        self.init_persp_rotate = Vec([0., 0., 0.])
+        self.init_ortho_rotate = Vec([90., -90., 0.])
+ 
+        self.ortho = False
+        if self.ortho:
+            self.translate = self.init_ortho_trans.copy()
+            self.rotate = self.init_ortho_rotate.copy()
+        else:
+            self.translate= self.init_persp_trans.copy()
+            self.rotate = self.init_persp_rotate.copy()
 
         self.width = 640
         self.height = 480
@@ -57,7 +77,7 @@ class window(object):
         self.glinit()
 
         #set up initial conditions
-        (pos_vbo, col_vbo, params) = initialize.wave(dt, dx, ntracers)
+        (pos_vbo, col_vbo, params) = initialize.wave(choice, stable, type, dt, dx, ntracers)
         #create our OpenCL instance
         #self.cle = part2.Part2(num, dt, "part2.cl")
         self.cle = wave.Wave(dt, dx, ntracers, params)
@@ -72,6 +92,7 @@ class window(object):
         #TODO: 
         # * set up Ortho2D viewing and mouse controls
         # * find better color mapping for height
+
         
         #update or particle positions by calling the OpenCL kernel
         self.cle.execute(subintervals) 
@@ -82,9 +103,9 @@ class window(object):
         glLoadIdentity()
 
         #handle mouse transformations
-        glTranslatef(self.initrans.x, self.initrans.y, self.initrans.z)
+        #glTranslatef(self.initrans.x, self.initrans.y, self.initrans.z)
         glRotatef(self.rotate.x, 1, 0, 0)
-        glRotatef(self.rotate.y, 0, 1, 0) #we switched around the axis so make this rotate_z
+        glRotatef(self.rotate.y, 0, 1, 0) 
         glTranslatef(self.translate.x, self.translate.y, self.translate.z)
         
         #render the particles
@@ -100,7 +121,10 @@ class window(object):
         glViewport(0, 0, self.width, self.height)
         glMatrixMode(GL_PROJECTION)
         glLoadIdentity()
-        gluPerspective(60., self.width / float(self.height), .1, 1000.)
+        if self.ortho:
+            glOrtho(0.0, 1.0, 0.0, -1.0, -1.5, 1.5)
+        else:
+            gluPerspective(60., self.width / float(self.height), .1, 1000.)
         glMatrixMode(GL_MODELVIEW)
 
 
@@ -115,6 +139,16 @@ class window(object):
             sys.exit()
         elif args[0] == 't':
             print initialize.timings
+        elif args[0] == 'o':
+            self.ortho = not self.ortho
+            if self.ortho:
+                self.translate = self.init_ortho_trans.copy()
+                self.rotate = self.init_ortho_rotate.copy()
+            else:
+                self.translate = self.init_persp_trans.copy()
+                self.rotate = self.init_persp_rotate.copy()
+            self.glinit()
+
 
     def on_click(self, button, state, x, y):
         if state == GLUT_DOWN:
@@ -131,7 +165,7 @@ class window(object):
         dy = y - self.mouse_old.y
         if self.mouse_down and self.button == 0: #left button
             self.rotate.x += dy * .2
-            self.rotate.y += dx * .2
+            #self.rotate.y += dx * .2
         elif self.mouse_down and self.button == 2: #right button
             self.translate.z -= dy * .01 
         self.mouse_old.x = x

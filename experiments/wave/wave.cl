@@ -113,8 +113,11 @@ __kernel void wave(__global float4* pos,
         //posn2[i].w = 1.;
         //barrier(CLK_GLOBAL_MEM_FENCE);
         //ymaxm = ymaxm < 0. ? -ymaxm : ymaxm;
-        color[i].x = -1.f * ymaxm + 1.f;
-        color[i].y = 1.f * ymaxm + 1.f;
+        float col = native_sin(ymaxm*12*3.14f);
+        //color[i].xy = col;
+        color[i].y = -1.f * col + 1.f;
+        color[i].x = 1.f * col + 1.f;
+        color[i] *= .06f;
     }
 #endif
 
