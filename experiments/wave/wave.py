@@ -16,10 +16,19 @@ class Wave:
         
         self.dt = dt
         self.dx = dx
-        self.num = params[0]
         self.ntracers = ntracers 
-        self.params = params[1:]
+        self.set_params(params)
+        #self.num = params[0]
+        #self.ntracers = ntracers 
+        #self.params = params[1:]
          
+
+    def set_params(self, params):
+        self.num = params[0]
+        self.params = params[1:]
+        self.dt = params[-1]
+        print "wave set_params", self.dt
+        
     
     @timings
     def execute(self, subintervals):
@@ -64,7 +73,7 @@ class Wave:
                       )
         
         #dz = numpy.float32(-dx/subintervals)
-        dz = numpy.float32(-.21/ntracers/subintervals)
+        dz = numpy.float32(-.11/ntracers/subintervals)
         update_kernelargs = (self.pos_cl,
                        self.col_cl,
                        self.pos_n1_cl,
@@ -82,7 +91,6 @@ class Wave:
         cl.enqueue_release_gl_objects(self.queue, self.gl_objects)
         self.queue.finish()
  
-
 
     def loadData(self, pos_vbo, col_vbo):
         import pyopencl as cl
@@ -108,6 +116,16 @@ class Wave:
         # set up the list of GL objects to share with opencl
         self.gl_objects = [self.pos_cl, self.col_cl]
  
+ 
+    def reloadData(self):
+        import pyopencl as cl
+        cl.enqueue_acquire_gl_objects(self.queue, self.gl_objects)
+        cl.enqueue_copy_buffer(self.queue, self.pos_cl, self.pos_n1_cl).wait()
+        cl.enqueue_copy_buffer(self.queue, self.pos_cl, self.pos_n2_cl).wait()
+        cl.enqueue_release_gl_objects(self.queue, self.gl_objects)
+        
+
+
  
     def clinit(self):
         plats = cl.get_platforms()
@@ -139,7 +157,7 @@ class Wave:
 
         #glColor3f(1,0,0)
         glEnable(GL_POINT_SMOOTH)
-        glPointSize(10)
+        glPointSize(12)
 
         glEnable(GL_BLEND)
         glBlendFunc(GL_ONE, GL_ONE)

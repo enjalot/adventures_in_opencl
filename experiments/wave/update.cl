@@ -22,7 +22,6 @@ __kernel void update(__global float4* pos,
 
     for(int j = 0; j < ntracers; j++)
     {
-
         i = ind + (j+1) * num;
 #if 1
         life = posn2[i].w - dt/ntracers;
@@ -32,7 +31,6 @@ __kernel void update(__global float4* pos,
             pos[i] = posn1[ind]; 
             color[i] = color[ind];
             life = ntracers*dt;
-
         }
         pos[i].z += dz;
 #endif

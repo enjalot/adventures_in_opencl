@@ -117,7 +117,7 @@ __kernel void wave(__global float4* pos,
         //color[i].xy = col;
         color[i].y = -1.f * col + 1.f;
         color[i].x = 1.f * col + 1.f;
-        color[i] *= .06f;
+        color[i] *= .09f;
     }
 #endif
 

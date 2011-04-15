@@ -18,19 +18,11 @@ import initialize
 #number of particles
 #num = 20000
 subintervals = 30
-ntracers = 150
+ntracers = 300
 #dt = .0001
 #dx = .002
 dt = .002*.01
 dx = .024*.1
-
-choice = 2
-#stable = True
-stable = False
-#type = "square"
-type = "sin"
-#type = "sawtooth"
-#type = "sweep_poly"
 
 class window(object):
     def __init__(self, *args, **kwargs):
@@ -45,13 +37,16 @@ class window(object):
         self.init_persp_rotate = Vec([0., 0., 0.])
         self.init_ortho_rotate = Vec([90., -90., 0.])
  
+
         self.ortho = False
-        if self.ortho:
-            self.translate = self.init_ortho_trans.copy()
-            self.rotate = self.init_ortho_rotate.copy()
-        else:
-            self.translate= self.init_persp_trans.copy()
-            self.rotate = self.init_persp_rotate.copy()
+        self.choice = 2
+        #self.stable = True
+        self.stable = False
+        #self.type = "square"
+        self.wtype = "sin"
+        #self.wtype = "sawtooth"
+        #self.wtype = "sweep_poly"
+        self.dt = dt
 
         self.width = 640
         self.height = 480
@@ -73,19 +68,100 @@ class window(object):
         #this will call draw every 30 ms
         glutTimerFunc(30, self.timer, 30)
 
+        glViewport(0, 0, self.width, self.height)
         #setup OpenGL scene
-        self.glinit()
+        self.glprojection()
 
         #set up initial conditions
-        (pos_vbo, col_vbo, params) = initialize.wave(choice, stable, type, dt, dx, ntracers)
+        self.init_wave(self.dt, dx, ntracers, True)
         #create our OpenCL instance
         #self.cle = part2.Part2(num, dt, "part2.cl")
-        self.cle = wave.Wave(dt, dx, ntracers, params)
-        self.cle.loadData(pos_vbo, col_vbo)
+        self.cle = wave.Wave(self.dt, dx, ntracers, self.params)
+        self.cle.loadData(self.pos_vbo, self.col_vbo)
 
         self.cle.execute(subintervals) 
         glutMainLoop()
+ 
+    def set_params(self):
+        if self.choice == 1:        #linear
+            if not self.stable:
+                c = 1 #unstable
+            else:
+                c = 10. #stable
+            param = c
+            ymin = -150.
+            ymax = 150.
+
+        elif self.choice == 2:      #quadratic 
+            if not self.stable:
+                #unstable for quadratic
+                beta = .016568
+            else:
+                beta = .0016568     #stable
+            param = beta
+            ymin = -12.
+            ymax = 12.
+
+        elif self.choice == 3:      #cubic
+            if not self.stable:
+                #gamma = .509
+                gamma = .0509  #unstable
+            else:
+                gamma = .00509  #stable
+            param = gamma
+            ymin = -1.
+            ymax = 1.
         
+        self.params = (self.num, self.choice, param, ymin, ymax, self.dt)
+
+        print "Parameters: ======================"
+        if self.choice == 1:
+            print "Linear Wave Equation"
+        if self.choice == 2:
+            print "Quadratic Wave Equation"
+        if self.choice == 3:
+            print "Cubic Wave Equation"
+        if self.stable:
+            print "Stability: Stable"
+        else:
+            print "Stability: Unstable"
+        print "%s wave" % self.wtype
+        print "Timestep: ", self.dt
+        print "=================================="
+
+
+
+    def init_wave(self, dt, dx, numtracers, init):
+        """Initialize position, color and velocity arrays we also make Vertex
+        Buffer Objects for the position and color arrays"""
+
+        pos, col, self.num = initialize.wave_np(self.wtype, dt, dx, numtracers)
+        self.set_params()
+        
+        #print timings
+
+        if init:
+            #create the Vertex Buffer Objects
+            from OpenGL.arrays import vbo 
+            self.pos_vbo = vbo.VBO(data=pos, usage=GL_DYNAMIC_DRAW, target=GL_ARRAY_BUFFER)
+            self.pos_vbo.bind()
+            self.col_vbo = vbo.VBO(data=col, usage=GL_DYNAMIC_DRAW, target=GL_ARRAY_BUFFER)
+            self.col_vbo.bind()
+        else:
+            self.pos_vbo.bind()
+            self.pos_vbo.set_array(pos)
+            self.pos_vbo.copy_data()
+            self.col_vbo.bind()
+            self.col_vbo.set_array(col)
+            self.col_vbo.copy_data()
+            self.cle.set_params(self.params)
+            self.cle.reloadData()
+
+       
+
+        #return (pos_vbo, col_vbo, params)
+
+       
 
     def draw(self):
         """Render the particles"""        
@@ -117,14 +193,19 @@ class window(object):
         glutSwapBuffers()
 
 
-    def glinit(self):
-        glViewport(0, 0, self.width, self.height)
+    def glprojection(self):
         glMatrixMode(GL_PROJECTION)
         glLoadIdentity()
+
         if self.ortho:
             glOrtho(0.0, 1.0, 0.0, -1.0, -1.5, 1.5)
+            self.translate = self.init_ortho_trans.copy()
+            self.rotate = self.init_ortho_rotate.copy()
         else:
             gluPerspective(60., self.width / float(self.height), .1, 1000.)
+            self.translate= self.init_persp_trans.copy()
+            self.rotate = self.init_persp_rotate.copy()
+
         glMatrixMode(GL_MODELVIEW)
 
 
@@ -147,7 +228,50 @@ class window(object):
             else:
                 self.translate = self.init_persp_trans.copy()
                 self.rotate = self.init_persp_rotate.copy()
-            self.glinit()
+            self.glprojection()
+        elif args[0] == '1':
+            self.choice = 1
+            self.init_wave(self.dt, dx, ntracers, False)
+        elif args[0] == '2':
+            self.choice = 2
+            self.init_wave(self.dt, dx, ntracers, False)
+        elif args[0] == '3':
+            self.choice = 3
+            self.init_wave(self.dt, dx, ntracers, False)
+        elif args[0] == 's':
+            self.stable = not self.stable
+            #print "Stable parameters: ", self.stable
+            self.set_params()
+            self.cle.set_params(self.params)
+            #self.init_wave(self.dt, dx, ntracers, False)
+        elif args[0] == 'v':
+            self.wtype = "sin"
+            self.init_wave(self.dt, dx, ntracers, False)
+        elif args[0] == 'b':
+            self.wtype = "sawtooth"
+            self.init_wave(self.dt, dx, ntracers, False)
+        elif args[0] == 'n':
+            self.wtype = "square"
+            self.init_wave(self.dt, dx, ntracers, False)
+        elif args[0] == '-':
+            self.dt *= .1
+            self.set_params()
+            self.cle.set_params(self.params)
+        elif args[0] == '=':
+            self.dt *= 10
+            self.set_params()
+            self.cle.set_params(self.params)
+        """
+        elif args[0] == 'm':
+            self.wtype = "sweep_poly"
+            self.init_wave(self.dt, dx, ntracers, False)
+        """
+        
+
+
+
+
+
 
 
     def on_click(self, button, state, x, y):
