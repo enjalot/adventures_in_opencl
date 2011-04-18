@@ -7,59 +7,44 @@ import struct
 #ctx = cl.create_some_context()
 mf = cl.mem_flags
 
-#really we should be initializing based on what type of arrays we will be sorting
-#so we should be calculating the itemsize from the array type
-uintsz = np.uint32(0).itemsize
-
 class Radix:
-    def __init__(self, max_elements, cta_size):
+    def __init__(self, max_elements, cta_size, dtype):
         self.WARP_SIZE = 32
         self.SCAN_WG_SIZE = 256
         self.MIN_LARGE_ARRAY_SIZE = 4 * self.SCAN_WG_SIZE
         self.bit_step = 4
         self.cta_size = cta_size
-
-        self.clinit()
-        """
-        unsigned int numBlocks = ((max_elements % (cta_size * 4)) == 0) ? 
-                (max_elements / (cta_size * 4)) : (max_elements / (cta_size * 4) + 1);
-        cl_int ciErrNum;
-        d_tempKeys = clCreateBuffer(cxGPUContext, CL_MEM_READ_WRITE, sizeof(unsigned int) * max_elements, NULL, &ciErrNum);
-        // Not sure this is required (G. Erlebacher, 9/11/2010)
-        d_tempValues = clCreateBuffer(cxGPUContext, CL_MEM_READ_WRITE, sizeof(unsigned int) * max_elements, NULL, &ciErrNum);
-        mCounters = clCreateBuffer(cxGPUContext, CL_MEM_READ_WRITE, WARP_SIZE * numBlocks * sizeof(unsigned int), NULL, &ciErrNum);
-        mCountersSum = clCreateBuffer(cxGPUContext, CL_MEM_READ_WRITE, WARP_SIZE * numBlocks * sizeof(unsigned int), NULL, &ciErrNum);
-        mBlockOffsets = clCreateBuffer(cxGPUContext, CL_MEM_READ_WRITE, WARP_SIZE * numBlocks * sizeof(unsigned int), NULL, &ciErrNum); 
-        """
-        if (max_elements % (cta_size * 4)) == 0:
-            num_blocks = max_elements / (cta_size * 4)
-        else:
-            num_blocks = max_elements / (cta_size * 4) + 1
-
-        print "num_blocks: ", num_blocks
-        self.d_tempKeys = cl.Buffer(self.ctx, mf.READ_WRITE, size=uintsz * max_elements)
-        self.d_tempValues = cl.Buffer(self.ctx, mf.READ_WRITE, size=uintsz * max_elements)
-
-        self.mCounters = cl.Buffer(self.ctx, mf.READ_WRITE, size=uintsz * self.WARP_SIZE * num_blocks)
-        self.mCountersSum = cl.Buffer(self.ctx, mf.READ_WRITE, size=uintsz * self.WARP_SIZE * num_blocks)
-        self.mBlockOffsets = cl.Buffer(self.ctx, mf.READ_WRITE, size=uintsz * self.WARP_SIZE * num_blocks)
-
-        numscan = max_elements/2/cta_size*16
-        print "numscan", numscan
-        if numscan >= self.MIN_LARGE_ARRAY_SIZE:
-        #MAX_WORKGROUP_INCLUSIVE_SCAN_SIZE 1024
-            self.scan_buffer = cl.Buffer(self.ctx, mf.READ_WRITE, size = uintsz * numscan / 1024)
-
-
-
-
-    def clinit(self):
+        self.uintsz = dtype.itemsize
 
         plat = cl.get_platforms()[0]
         device = plat.get_devices()[0]
         self.ctx = cl.Context(devices=[device])
         self.queue = cl.CommandQueue(self.ctx, device)
 
+        self.loadProgram()
+
+        if (max_elements % (cta_size * 4)) == 0:
+            num_blocks = max_elements / (cta_size * 4)
+        else:
+            num_blocks = max_elements / (cta_size * 4) + 1
+
+        #print "num_blocks: ", num_blocks
+        self.d_tempKeys = cl.Buffer(self.ctx, mf.READ_WRITE, size=self.uintsz * max_elements)
+        self.d_tempValues = cl.Buffer(self.ctx, mf.READ_WRITE, size=self.uintsz * max_elements)
+
+        self.mCounters = cl.Buffer(self.ctx, mf.READ_WRITE, size=self.uintsz * self.WARP_SIZE * num_blocks)
+        self.mCountersSum = cl.Buffer(self.ctx, mf.READ_WRITE, size=self.uintsz * self.WARP_SIZE * num_blocks)
+        self.mBlockOffsets = cl.Buffer(self.ctx, mf.READ_WRITE, size=self.uintsz * self.WARP_SIZE * num_blocks)
+
+        numscan = max_elements/2/cta_size*16
+        #print "numscan", numscan
+        if numscan >= self.MIN_LARGE_ARRAY_SIZE:
+        #MAX_WORKGROUP_INCLUSIVE_SCAN_SIZE 1024
+            self.scan_buffer = cl.Buffer(self.ctx, mf.READ_WRITE, size = self.uintsz * numscan / 1024)
+
+
+
+    def loadProgram(self):
         print "build scan"
         f = open("Scan_b.cl", 'r')
         fstr = "".join(f.readlines())
@@ -122,8 +107,8 @@ class Radix:
                         np.uint32(startbit),
                         np.uint32(num),
                         np.uint32(totalBlocks),
-                        cl.LocalMemory(4*self.cta_size*uintsz),
-                        cl.LocalMemory(4*self.cta_size*uintsz)
+                        cl.LocalMemory(4*self.cta_size*self.uintsz),
+                        cl.LocalMemory(4*self.cta_size*self.uintsz)
                     )
         self.radix_prg.radixSortBlocksKeysValues(self.queue, global_size, local_size, *(blocks_args)).wait()
         #self.radix_prg.radixSortBlocksKeysOnly(self.queue, global_size, local_size, *(blocks_args)).wait()
@@ -140,7 +125,7 @@ class Radix:
                          np.uint32(startbit),
                          np.uint32(num),
                          np.uint32(totalBlocks),
-                         cl.LocalMemory(2*self.cta_size*uintsz),
+                         cl.LocalMemory(2*self.cta_size*self.uintsz),
                     )
         self.radix_prg.findRadixOffsets(self.queue, global_size, local_size, *(offsets_args)).wait()
 
@@ -150,7 +135,7 @@ class Radix:
         global_size = (nhist,)
         local_size = (nhist,)
         extra_space = nhist / 16 #NUM_BANKS defined as 16 in RadixSort.cpp
-        shared_mem_size = uintsz * (nhist + extra_space)
+        shared_mem_size = self.uintsz * (nhist + extra_space)
         scan_args = (   self.mCountersSum,
                         self.mCounters,
                         np.uint32(nhist),
@@ -180,7 +165,7 @@ class Radix:
         local_size = (self.SCAN_WG_SIZE,)
         scan_args = (   dst,
                         src,
-                        cl.LocalMemory(2 * self.SCAN_WG_SIZE * uintsz),
+                        cl.LocalMemory(2 * self.SCAN_WG_SIZE * self.uintsz),
                         np.uint32(size)
                     )
         self.scan_prg.scanExclusiveLocal1(self.queue, global_size, local_size, *(scan_args)).wait()
@@ -199,7 +184,7 @@ class Radix:
         scan_args = (   self.scan_buffer,
                         dst,
                         src,
-                        cl.LocalMemory(2 * self.SCAN_WG_SIZE * uintsz),
+                        cl.LocalMemory(2 * self.SCAN_WG_SIZE * self.uintsz),
                         np.uint32(elements),
                         np.uint32(size)
                     )
@@ -229,8 +214,8 @@ class Radix:
                          np.uint32(startbit),
                          np.uint32(num),
                          np.uint32(totalBlocks),
-                         cl.LocalMemory(2*self.cta_size*uintsz),
-                         cl.LocalMemory(2*self.cta_size*uintsz)
+                         cl.LocalMemory(2*self.cta_size*self.uintsz),
+                         cl.LocalMemory(2*self.cta_size*self.uintsz)
                     )
         self.radix_prg.reorderDataKeysValues(self.queue, global_size, local_size, *(reorder_args))
         #self.radix_prg.reorderDataKeysOnly(self.queue, global_size, local_size, *(reorder_args))
@@ -254,7 +239,7 @@ if __name__ == "__main__":
     print "hashes before:", hashes[0:20].T
     print "indices before: ", indices[0:20].T 
 
-    radix = Radix(n, 128)
+    radix = Radix(n, 128, hashes.dtype)
     #num_to_sort = 32768
     num_to_sort = n
     hashes, indices = radix.sort(num_to_sort, hashes, indices)
