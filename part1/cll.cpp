@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <string>
+#include <cstdlib>
 
 #include "cll.h"
 #include "util.h"
