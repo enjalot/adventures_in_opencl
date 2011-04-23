@@ -4,6 +4,9 @@ import pyopencl as cl
 import numpy as np
 import struct
 
+import timing
+timings = timing.Timing()
+
 #ctx = cl.create_some_context()
 mf = cl.mem_flags
 
@@ -55,6 +58,7 @@ class Radix:
         self.radix_prg = cl.Program(self.ctx, fstr).build()
 
 
+    @timings("Radix Sort")
     def sort(self, num, keys_np, values_np):
         self.keys = cl.Buffer(self.ctx, mf.READ_ONLY | mf.COPY_HOST_PTR, hostbuf=keys_np)
         self.values = cl.Buffer(self.ctx, mf.READ_ONLY | mf.COPY_HOST_PTR, hostbuf=values_np)
@@ -75,6 +79,7 @@ class Radix:
         return keys_np, values_np
 
 
+    @timings("Radix: step")
     def step(self, nbits, startbit, num):
         self.blocks(nbits, startbit, num)
         self.queue.finish()
@@ -95,6 +100,7 @@ class Radix:
         self.queue.finish()
 
 
+    @timings("Radix: blocks")
     def blocks(self, nbits, startbit, num):
         totalBlocks = num/4/self.cta_size
         global_size = (self.cta_size*totalBlocks,)
@@ -114,6 +120,7 @@ class Radix:
         #self.radix_prg.radixSortBlocksKeysOnly(self.queue, global_size, local_size, *(blocks_args)).wait()
 
 
+    @timings("Radix: find offsets")
     def find_offsets(self, startbit, num):
         totalBlocks = num/2/self.cta_size
         global_size = (self.cta_size*totalBlocks,)
@@ -130,6 +137,7 @@ class Radix:
         self.radix_prg.findRadixOffsets(self.queue, global_size, local_size, *(offsets_args)).wait()
 
 
+    @timings("Radix: naive scan")
     def naive_scan(self, num):
         nhist = num/2/self.cta_size*16
         global_size = (nhist,)
@@ -144,6 +152,7 @@ class Radix:
         self.radix_prg.scanNaive(self.queue, global_size, local_size, *(scan_args)).wait()
 
 
+    @timings("Radix: scan")
     def scan(self, dst, src, batch_size, array_length):
         self.scan_local1(   dst, 
                             src, 
@@ -160,6 +169,7 @@ class Radix:
         self.queue.finish()
 
     
+    @timings("Scan: local1")
     def scan_local1(self, dst, src, n, size):
         global_size = (n * size / 4,)
         local_size = (self.SCAN_WG_SIZE,)
@@ -170,7 +180,7 @@ class Radix:
                     )
         self.scan_prg.scanExclusiveLocal1(self.queue, global_size, local_size, *(scan_args)).wait()
 
-
+    @timings("Scan: local2")
     def scan_local2(self, dst, src, n, size):
         elements = n * size
         dividend = elements
@@ -191,6 +201,7 @@ class Radix:
         self.scan_prg.scanExclusiveLocal2(self.queue, global_size, local_size, *(scan_args)).wait()
 
 
+    @timings("Scan: update")
     def scan_update(self, dst, n):
         global_size = (n * self.SCAN_WG_SIZE,)
         local_size = (self.SCAN_WG_SIZE,)
@@ -199,7 +210,7 @@ class Radix:
                     )
         self.scan_prg.uniformUpdate(self.queue, global_size, local_size, *(scan_args)).wait()
 
-
+    @timings("Scan: reorder")
     def reorder(self, startbit, num):
         totalBlocks = num/2/self.cta_size
         global_size = (self.cta_size*totalBlocks,)
@@ -223,10 +234,10 @@ class Radix:
 
 if __name__ == "__main__":
 
-    #n = 1048576
+    n = 1048576
     #n = 32768*2
-    n = 16384
-    n = 8192
+    #n = 16384
+    #n = 8192
     hashes = np.ndarray((n,1), dtype=np.uint32)
     indices = np.ndarray((n,1), dtype=np.uint32)
     
@@ -249,6 +260,7 @@ if __name__ == "__main__":
 
     print np.linalg.norm(hashes - npsorted)
 
+    print timings
 
 
 
