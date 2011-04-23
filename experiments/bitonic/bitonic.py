@@ -64,13 +64,9 @@ class Bitonic:
 
         #self.keys = keys
         #self.values = values
-        self.keys = cl.Buffer(self.ctx, mf.READ_ONLY | mf.COPY_HOST_PTR, hostbuf=keys)
-        self.values = cl.Buffer(self.ctx, mf.READ_ONLY | mf.COPY_HOST_PTR, hostbuf=values)
-
-        cl.enqueue_read_buffer(self.queue, self.keys, keys)
-        cl.enqueue_read_buffer(self.queue, self.values, values)
+        self.keys = cl.Buffer(self.ctx, mf.READ_WRITE | mf.COPY_HOST_PTR, hostbuf=keys)
+        self.values = cl.Buffer(self.ctx, mf.READ_WRITE | mf.COPY_HOST_PTR, hostbuf=values)
         self.queue.finish()
-
 
         direction = (direction != 0)
         array_length = keys.size
@@ -131,7 +127,7 @@ class Bitonic:
                     )
 
         self.bitonic_prg.bitonicMergeGlobal(self.queue, global_size, local_size, *(merge_global_args)).wait()
-        self.queue.finish()
+        #self.queue.finish()
 
 
     @timings("Bitonic: merge local")
@@ -159,14 +155,15 @@ class Bitonic:
     def local1(self, batch, array_length, direction):
         local_size = (self.local_size_limit / 2,)
         global_size = (batch * array_length / 2,)
-        print global_size, local_size
+        #print global_size, local_size
         local1_args = (
                         self.d_tempKeys,
                         self.d_tempValues,
                         self.keys,
                         self.values
                     )
-        self.bitonic_prg.bitonicSortLocal1(self.queue, global_size, local_size, *(local1_args)).wait()
+        #self.bitonic_prg.bitonicSortLocal1(self.queue, global_size, local_size, *(local1_args)).wait()
+        self.bitonic_prg.bitonicSortLocal1(self.queue, global_size, local_size, self.d_tempKeys, self.d_tempValues, self.keys, self.values).wait()
         self.queue.finish()
 
 
@@ -194,7 +191,7 @@ if __name__ == "__main__":
     #n = 1048576
     n = 32768*2
     #n = 16384
-    n = 8192
+    #n = 8192
     hashes = np.ndarray((n,), dtype=np.uint32)
     indices = np.ndarray((n,), dtype=np.uint32)
     print "hashes size", hashes.size

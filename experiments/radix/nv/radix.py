@@ -60,8 +60,8 @@ class Radix:
 
     @timings("Radix Sort")
     def sort(self, num, keys_np, values_np):
-        self.keys = cl.Buffer(self.ctx, mf.READ_ONLY | mf.COPY_HOST_PTR, hostbuf=keys_np)
-        self.values = cl.Buffer(self.ctx, mf.READ_ONLY | mf.COPY_HOST_PTR, hostbuf=values_np)
+        self.keys = cl.Buffer(self.ctx, mf.READ_WRITE | mf.COPY_HOST_PTR, hostbuf=keys_np)
+        self.values = cl.Buffer(self.ctx, mf.READ_WRITE | mf.COPY_HOST_PTR, hostbuf=values_np)
         key_bits = keys_np.dtype.itemsize * 8
         #print "numElements", num
         #print "key_bits", key_bits
