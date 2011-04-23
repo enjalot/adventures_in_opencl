@@ -67,6 +67,10 @@ class Bitonic:
         self.keys = cl.Buffer(self.ctx, mf.READ_ONLY | mf.COPY_HOST_PTR, hostbuf=keys)
         self.values = cl.Buffer(self.ctx, mf.READ_ONLY | mf.COPY_HOST_PTR, hostbuf=values)
 
+        cl.enqueue_read_buffer(self.queue, self.keys, keys)
+        cl.enqueue_read_buffer(self.queue, self.values, values)
+        self.queue.finish()
+
 
         direction = (direction != 0)
         array_length = keys.size
@@ -98,8 +102,8 @@ class Bitonic:
         self.queue.finish()
 
         #copy to cpu to view results
-        cl.enqueue_read_buffer(self.queue, self.keys, keys).wait()
-        cl.enqueue_read_buffer(self.queue, self.values, values).wait()
+        cl.enqueue_read_buffer(self.queue, self.keys, keys)
+        cl.enqueue_read_buffer(self.queue, self.values, values)
         self.queue.finish()
         #cl.enqueue_read_buffer(self.queue, self.d_tempKeys, keys).wait()
         #cl.enqueue_read_buffer(self.queue, self.d_tempValues, values).wait()
@@ -187,22 +191,29 @@ class Bitonic:
 if __name__ == "__main__":
     #These tests wont work as is since class was restructured to fit in with sph
 
-    n = 1048576
-    #n = 32768*2
+    #n = 1048576
+    n = 32768*2
     #n = 16384
-    #n = 8192
-    hashes = np.ndarray((n,1), dtype=np.uint32)
-    indices = np.ndarray((n,1), dtype=np.uint32)
+    n = 8192
+    hashes = np.ndarray((n,), dtype=np.uint32)
+    indices = np.ndarray((n,), dtype=np.uint32)
     print "hashes size", hashes.size
     
+    import sys
     for i in xrange(0,n): 
-        hashes[i] = n - i
+        hashes[i] = 1 * sys.maxint#n - i
         indices[i] = i
+
+    fh = [597, 598, 598, 599, 599, 597, 598, 598, 599, 599, 613, 614, 614, 615, 615, 613, 614, 614, 615, 615]
+    for i,f in enumerate(fh):
+        hashes[i] = f
+
+
     
     npsorted = np.sort(hashes,0)
 
-    print "hashes before:", hashes[0:20].T
-    print "indices before: ", indices[0:20].T 
+    print "hashes before:", hashes[0:25].T
+    print "indices before: ", indices[0:25].T 
 
     bitonic = Bitonic(n, 128, hashes.dtype)
     #num_to_sort = 32768
@@ -223,9 +234,9 @@ if __name__ == "__main__":
     """
 
 
-    print "hashes after:", shashes[0:20].T
-    print "sorted hashes:", npsorted[0:20].T
-    print "indices after: ", sindices[0:20].T 
+    print "hashes after:", shashes[0:25].T
+    #print "sorted hashes:", npsorted[0:20].T
+    print "indices after: ", sindices[0:25].T 
 
     print np.linalg.norm(shashes - npsorted)
 
