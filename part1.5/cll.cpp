@@ -18,6 +18,7 @@ CL::CL()
     std::vector<cl::Platform> platforms;
     err = cl::Platform::get(&platforms);
     printf("cl::Platform::get(): %s\n", oclErrorString(err));
+    printf("number of platforms: %d\n", platforms.size());
     if (platforms.size() == 0) {
         printf("Platform size 0\n");
     }

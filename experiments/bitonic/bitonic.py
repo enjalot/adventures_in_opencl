@@ -191,10 +191,10 @@ class Bitonic:
 if __name__ == "__main__":
     #These tests wont work as is since class was restructured to fit in with sph
 
-    #n = 1048576
-    n = 32768*2
+    n = 1048576*2
+    #n = 32768*2
     #n = 16384
-    n = 8192
+    #n = 8192
     hashes = np.ndarray((n,), dtype=np.uint32)
     indices = np.ndarray((n,), dtype=np.uint32)
     print "hashes size", hashes.size
