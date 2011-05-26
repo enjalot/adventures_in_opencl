@@ -49,6 +49,7 @@ CL::CL()
 
     context = cl::Context(CL_DEVICE_TYPE_GPU, properties);
     devices = context.getInfo<CL_CONTEXT_DEVICES>();
+    printf("number of devices %d\n", devices.size());
     
     //create the command queue we will use to execute OpenCL commands
     ///command_queue = clCreateCommandQueue(context, devices[deviceUsed], 0, &err);
