@@ -30,6 +30,28 @@ char *file_contents(const char *filename, int *length)
     return (char*)buffer;
 }
 
+//Some hacked together stuff to print out nice names for OpenCL enums
+//filling it in as I go so it wont have all of them
+const char* GetCLPropertyString(int prop)
+{
+    switch(prop)
+    {
+        case(CL_DEVICE_TYPE_CPU):
+            return "CPU";
+            break;
+        case(CL_DEVICE_TYPE_GPU):
+            return "GPU";
+            break;
+        case(CL_DEVICE_TYPE_ACCELERATOR):
+            return "ACCELERATOR";
+            break;
+        case(CL_DEVICE_TYPE_DEFAULT):
+            return "DEFAULT";
+            break;
+
+
+    }
+}
 
 
 //NVIDIA's code follows

@@ -8,5 +8,6 @@ char *file_contents(const char *filename, int *length);
 cl_int oclGetPlatformID(cl_platform_id* clSelectedPlatformID);
 const char* oclErrorString(cl_int error);
 
+const char* GetCLPropertyString(int prop);
 
 #endif
