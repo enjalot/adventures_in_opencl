@@ -4,8 +4,7 @@
 #include <string>
 #include <string.h>
 
-
-#include "cll.h"
+#include "CL/cl.hpp"
 #include "util.h"
 
 char *file_contents(const char *filename, int *length)

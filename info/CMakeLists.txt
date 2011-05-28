@@ -2,14 +2,14 @@ CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
 project(info)
 
 #need to include FindOPENCL.cmake to
-SET( CMAKE_MODULE_PATH ${info_SOURCE_DIR}/../../cmake)
+SET( CMAKE_MODULE_PATH ${info_SOURCE_DIR}/../cmake)
 
 message("CMake module path: ${CMAKE_MODULE_PATH}\n")
 
 FIND_PACKAGE (OPENCL)
 
 INCLUDE_DIRECTORIES( 
-    ${info_SOURCE_DIR}/../../opencl10
+    ${info_SOURCE_DIR}/../opencl10
 )
 
 message("include directories: \n")
