@@ -32,7 +32,7 @@ char *file_contents(const char *filename, int *length)
 
 //Some hacked together stuff to print out nice names for OpenCL enums
 //filling it in as I go so it wont have all of them
-const char* GetCLPropertyString(int prop)
+const char* oclPropDevice(int prop)
 {
     switch(prop)
     {
@@ -48,8 +48,39 @@ const char* GetCLPropertyString(int prop)
         case(CL_DEVICE_TYPE_DEFAULT):
             return "DEFAULT";
             break;
-
-
+        default:
+            return "UNKOWN";
+            break;
+    }
+}
+const char* oclPropCache(int prop)
+{
+    switch(prop)
+    {
+        case(CL_NONE):
+            return "None";
+            break;
+        case(CL_READ_ONLY_CACHE):
+            return "Read Only";
+            break;
+        case(CL_READ_WRITE_CACHE):
+            return "Read-Write";
+            break;
+    }
+}
+const char* oclPropMem(int prop)
+{
+    switch(prop)
+    {
+        case(CL_LOCAL):
+            return "Local";
+            break;
+        case(CL_GLOBAL):
+            return "Global";
+            break;
+        default:
+            return "UNKOWN";
+            break;
     }
 }
 
