@@ -18,6 +18,10 @@ cmake - cmake modules for finding necessary libraries
 opencl10 - OpenCL 1.0 header files
 opencl11 - OpenCL 1.1 header files
 
+License:
+This code is licensed under the MIT open source license. Some of the code is
+taken from other sources, and there should be a link to the original source.
+
 
 Thanks:
 Gordon Erlebacher
